@@ -1,0 +1,13 @@
+/**
+* Note that many of programming best practices are violated within
+* this class; for instance we use a lot of switch statements rather
+* than polymorphism.  This is necessitated by the inflexibility of the
+* Message format provided by battlecode, and the necessity to encode
+* a variety of different messages and information within a single
+* Message, itself containing an array of ints, Strings, and MapLocations.
+* We therefore must use a variety of tricks to encode all the various information
+* that we need to transfer; for instance the map information can be encoded as
+* two 2-dimensional arrays of booleans, which we store within a single String object.
+* @author Nicholas Dunn
+* @date   March 19, 2009
+*/
