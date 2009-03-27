@@ -1,10 +1,11 @@
 import battlecode.common.Clock;
 import battlecode.common.Message;
-
+import battlecode.common.MapLocation;
+import java.util.LinkedList;
+import java.util.List;
 
 /*
 {type:attack, taskforceID:120350, range:100, name:attack, priority:5, x:100, y:100, ttl:100, x0:100, y0:200}
-
 
 // If 
 
@@ -12,18 +13,6 @@ String[] values = message.split(",");
 String type = values[0];
 Command c = CommandFactory.parseString(type);
 c.parseArguments(values);
-
-
-
-
-
-
-
-task force id
-robot id
-all of certain robot type
-requested range
-
 */
 
 
@@ -63,9 +52,27 @@ requested range
 */
 public class MessageUtil {
 
-    // 5 for information, one for hash
-    private static final int NUM_HEADER_FIELDS = 6;
+    // 3 for information, one for hash
+    private static final int NUM_HEADER_FIELDS = 4;
 
+    // We include just 1 MapLocation in 
+    private static final int NUM_MAP_LOCATIONS = 1;
+
+
+    public static void main (String [] args)
+    {
+        MapLocation curSquare = new MapLocation(100, 200);
+        int robotID = 1235124;
+        int robotMessageID = 0;
+        
+        ExtendedMessage theMessage = new DefaultExtendedMessage();
+        List<ExtendedMessage> messageList = new LinkedList<ExtendedMessage>();
+        messageList.add(theMessage);
+        
+        Message m = pack(messageList, curSquare, robotID, robotMessageID);
+        
+        System.out.println(m.toString());        
+    }
 
 
     public void handleMessage(Message m) {
@@ -89,22 +96,37 @@ public class MessageUtil {
         // and rebroadcasting
     
     }
+    
+    
+    public static Message pack(List<ExtendedMessage> messages, MapLocation currentSquare, 
+                                int robotID, 
+                                int robotMessageID) {
+        String[] messageStrings = new String[messages.size()];
+        int counter = 0;
+        for (ExtendedMessage m : messages) {
+            messageStrings[counter++] = m.toMessageString();
+        }
+        int[] header = createHeader(robotID, robotMessageID);
+        MapLocation[] locations = new MapLocation[] { currentSquare };
+        
+        Message m = new Message();
+        m.strings = messageStrings;
+        m.ints = header;
+        m.locations = locations;
+        
+        return m;
+    }
 
 
-    private int[] createHeader() {
+    
+    private static int[] createHeader(int robotID, int robotMessageID) {
         
-        int x = 1235;
-        int y = -135124;
-        int robotID = 1035124;
-        int messageNum = 102951;
-        
+       
         // Fill an array with all the information that we use to distinguish
         // legitimate information
         int[] headerInfo = new int[] {
-            x,
-            y,
             robotID,
-            messageNum,
+            robotMessageID,
             Clock.getRoundNum()
         };
         // Make a cryptographic hash out of this information
@@ -141,10 +163,13 @@ public class MessageUtil {
         int[] ints = m.ints;
         String[] strings = m.strings;
 
-        // We always include strings and ints but never use
-        // the MapLocations
-        if (strings == null || ints == null || m.locations != null) {
+        // We always include strings and ints and MapLocations
+        if (strings == null || ints == null || m.locations == null) {
             return false; 
+        }
+        
+        if (m.locations.length != NUM_MAP_LOCATIONS) {
+            
         }
     
         // Check that the header information stored in
@@ -248,13 +273,15 @@ public class MessageUtil {
 
         
         
-    public static boolean shouldRebroadcast() {//ExtendedMessage m) {
+    public static boolean shouldRebroadcast(ExtendedMessage m) {
         // If it's a time limited message, and I'm past the time limit,
         // don't broadcast
-//        if (truem.isTimeLimited()) {
-
-        
-  //      }
+        if (m.isTimeLimited()) {
+            int latestRound = m.getLatestRoundRelevant();
+            if (latestRound <= Clock.getRoundNum()) {
+                
+            }
+        }
     
 
         // If I'm at the edge of the range of the intended audience
