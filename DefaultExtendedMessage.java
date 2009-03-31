@@ -1,3 +1,5 @@
+package jj_nick;
+
 import battlecode.common.MapLocation;
 
 
@@ -34,6 +36,7 @@ public class DefaultExtendedMessage implements ExtendedMessage {
     public String toMessageString() {
         // TODO: Fix this shit
         return this.toString();
+        
     }
     
     /**

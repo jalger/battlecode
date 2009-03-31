@@ -1,8 +1,12 @@
+package jj_nick;
+
 import battlecode.common.Clock;
 import battlecode.common.Message;
 import battlecode.common.MapLocation;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Arrays;
+
 
 /*
 {type:attack, taskforceID:120350, range:100, name:attack, priority:5, x:100, y:100, ttl:100, x0:100, y0:200}
@@ -58,6 +62,8 @@ public class MessageUtil {
     // We include just 1 MapLocation in 
     private static final int NUM_MAP_LOCATIONS = 1;
 
+   
+
 
     public static void main (String [] args)
     {
@@ -71,7 +77,10 @@ public class MessageUtil {
         
         Message m = pack(messageList, curSquare, robotID, robotMessageID);
         
-        System.out.println(m.toString());        
+        System.out.println(Arrays.toString(m.ints));
+        System.out.println(Arrays.toString(m.strings));
+        System.out.println(Arrays.toString(m.locations));
+        
     }
 
 

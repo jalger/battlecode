@@ -1,3 +1,5 @@
+package jj_nick;
+
 import battlecode.common.MapLocation;
 
 
@@ -46,6 +48,8 @@ public interface ExtendedMessage {
     * a String in order to fit into a standard Message object.
     */
     public String toMessageString();
+    
+    
     
     /**
     * @return the intended Range for this object
