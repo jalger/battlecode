@@ -18,14 +18,38 @@ public class RobotPlayer implements Runnable {
         start = Clock.getBytecodeNum();
         finalNum = Clock.getBytecodeNum();
         int delta = finalNum - start;
-        
+        /*
         start = Clock.getBytecodeNum();
         MiscInfo info = new MiscInfo.Builder(new MapLocation(100, 200)).range(MiscInfo.Range.SHORT).build();
+        
+        int [] result = info.toIntArray();
+        MiscInfo info2 = MiscInfo.PARSER.fromIntArray(result, 0);
+        
         //System.out.println(info);
-        info.toIntArray();                
         finalNum = Clock.getBytecodeNum();
         System.out.println("MiscInfo took " + (finalNum - start - delta) + " bytecodes.");
+*/        
+        /*
         
+        start = Clock.getBytecodeNum();
+        Path.testFromIntArray();
+        finalNum = Clock.getBytecodeNum();
+        System.out.println("Path.testFromIntArray took " + (finalNum - start - delta) + " bytecodes.");
+
+        start = Clock.getBytecodeNum();
+        Path.testToIntArray();
+        finalNum = Clock.getBytecodeNum();
+        System.out.println("Path.testToIntArray took " + (finalNum - start - delta) + " bytecodes.");
+*/
+        start = Clock.getBytecodeNum();
+        Path.main(null);
+        finalNum = Clock.getBytecodeNum();
+        System.out.println("Path.main took " + (finalNum - start - delta) + " bytecodes.");
+        
+        start = Clock.getBytecodeNum();
+        Path.main2(null);
+        finalNum = Clock.getBytecodeNum();
+        System.out.println("Path.main2 took " + (finalNum - start - delta) + " bytecodes.");
         
         
         /*

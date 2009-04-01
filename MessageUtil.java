@@ -11,10 +11,16 @@ import java.util.Arrays;
 
 /**
 * A Message contains a String array, an int array, and a 
-* MapLocation array.  We primarily use the String array in 
+* MapLocation array.  We primarily use the int array in 
 * order to encode all the different information we may
 * wish to send, including but not limited to Attack
 * Square X, Retreat to square Y, and so on and so forth.
+*
+* Each message encoded within the int array has both a MiscInfo object
+* and either a Command or Information associated with it.  The MiscInfo
+* object is used to determine whether the message as a whole pertains to 
+* the current robot, and whether the robot should rebroadcast that 
+* portion of the message.
 *
 * Since both communication from us and from our enemy flows
 * along the same channel, we need to worry about two main things:
@@ -30,7 +36,7 @@ import java.util.Arrays;
 * current state of the game that it would be impossible or very difficult 
 * for enemy robots to come up with themselves.  Furthermore a hash of this
 * information is included as well, so if they just use a preexisting one
-*  and modify it, the hash will not match.
+* and modify it, the hash will not match.
 *
 * This piece of information helps us determine the legitimacy in different 
 * ways depending on where the robot receiving the message is located.  
@@ -55,6 +61,7 @@ public class MessageUtil {
 
     public static void main (String [] args)
     {
+        /*
         MapLocation curSquare = new MapLocation(100, 200);
         int robotID = 1235124;
         int robotMessageID = 0;
@@ -67,7 +74,7 @@ public class MessageUtil {
         
         System.out.println(Arrays.toString(m.ints));
         System.out.println(Arrays.toString(m.strings));
-        System.out.println(Arrays.toString(m.locations));
+        System.out.println(Arrays.toString(m.locations));*/
         
     }
 
@@ -98,6 +105,7 @@ public class MessageUtil {
     public static Message pack(List<ExtendedMessage> messages, MapLocation currentSquare, 
                                 int robotID, 
                                 int robotMessageID) {
+                                    /*
         String[] messageStrings = new String[messages.size()];
         int counter = 0;
         for (ExtendedMessage m : messages) {
@@ -111,7 +119,8 @@ public class MessageUtil {
         m.ints = header;
         m.locations = locations;
         
-        return m;
+        return m;*/
+        return null;
     }
 
 
@@ -273,12 +282,13 @@ public class MessageUtil {
     public static boolean shouldRebroadcast(ExtendedMessage m) {
         // If it's a time limited message, and I'm past the time limit,
         // don't broadcast
+        /*
         if (m.isTimeLimited()) {
             int latestRound = m.getLatestRoundRelevant();
             if (latestRound <= Clock.getRoundNum()) {
                 
             }
-        }
+        }*/
     
 
         // If I'm at the edge of the range of the intended audience

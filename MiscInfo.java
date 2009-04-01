@@ -8,7 +8,7 @@ import battlecode.common.MapLocation;
 * @author Nicholas Dunn
 * @date   03/27/09
 */
-public class MiscInfo implements Transferable {
+public class MiscInfo implements Transferable<MiscInfo> {
     
     /**
     * Determines the intended range of the message.  
@@ -94,6 +94,11 @@ public class MiscInfo implements Transferable {
         }
         
     }
+    
+    // This is a hack, but I have no other idea how to do this...
+    // we need this reference in order to call the fromIntArray method
+    // but we can't :(
+    public static final MiscInfo PARSER = new MiscInfo.Builder(null).build(); 
     
     
     
@@ -183,31 +188,32 @@ public class MiscInfo implements Transferable {
     * Attempts to populate the fields of this object from the
     * values in the int array
     */
-    public boolean fromIntArray(int[] array, int offset) {
-        return true;
-        
-        /*
+    public MiscInfo fromIntArray(int[] array, int offset) {
         // We're missing fields somehow!
         if (array.length - offset < (NUM_FIELDS + 1)) {
-            return false;
+            return null;
         }
         int rangeOrdinal = array[offset + 1];
-        range = Range.values()[rangeOrdinal];
+        Range range = Range.values()[rangeOrdinal];
         
         int x = array[offset + 2];
         int y = array[offset + 3];
         
-        origin = new MapLocation(x, y);
+        MapLocation origin = new MapLocation(x, y);
         
         int recipientTypeOrdinal = array[offset + 4];
-        recipientType = Recipient.values()[recipientTypeOrdinal];
+        Recipient recipientType = Recipient.values()[recipientTypeOrdinal];
         
-        timeLimited = array[offset + 5] == 1 ? true : false;
-        latestRoundRelevant = array[offset + 6];
-        recipients = array[offset + 7];
+        boolean timeLimited = array[offset + 5] == 1 ? true : false;
+        int latestRoundRelevant = array[offset + 6];
+        int recipients = array[offset + 7];
         
-        return true;*/
-    }
+        return new Builder(origin).range(range).
+                        recipientType(recipientType).
+                        timeLimited(timeLimited).
+                        latestRoundRelevant(latestRoundRelevant).
+                        recipients(recipients).build();
+    }   
     
     public String toString() {
         return String.format("Origin:\t %s %n" +

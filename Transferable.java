@@ -4,7 +4,7 @@ package jj_nick;
 * @author Nicholas Dunn
 * 
 */
-public interface Transferable {
+public interface Transferable<T> {
     
     /**
     * Every transferable object must be able to be encoded in an int array
@@ -16,5 +16,5 @@ public interface Transferable {
     * and in particular a subset of the int array
     * @return true if successful, else false
     */
-    public boolean fromIntArray(int[] array, int offset);
+    public T fromIntArray(int[] array, int offset);
 }

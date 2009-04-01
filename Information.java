@@ -8,7 +8,7 @@ package jj_nick;
  * @author Nicholas Dunn
  * @date   February 28, 2009
  */
-public abstract class Information implements Transferable {
+public abstract class Information implements Transferable<Information> {
     public enum InformationType {
         MAP_DELTA,
         SELF_TROOP_STRENGTH,
@@ -20,6 +20,8 @@ public abstract class Information implements Transferable {
         COMMAND_COMPLETED,
         COMMAND_REFUSED
     }
+    
+    
     
     
     
