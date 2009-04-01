@@ -8,18 +8,6 @@ import java.util.List;
 import java.util.Arrays;
 
 
-/*
-{type:attack, taskforceID:120350, range:100, name:attack, priority:5, x:100, y:100, ttl:100, x0:100, y0:200}
-
-// If 
-
-String[] values = message.split(",");
-String type = values[0];
-Command c = CommandFactory.parseString(type);
-c.parseArguments(values);
-*/
-
-
 
 /**
 * A Message contains a String array, an int array, and a 
@@ -38,17 +26,17 @@ c.parseArguments(values);
 * Constantly hashing our messages in order to determine if
 * they are legitimate is a significant computational expense,
 * and one we cannot afford, especially when sending large
-* pieces of the map.  As such we include a piece of data relevant to the current 
-* state of the game that it would be impossible or very difficult for enemy robots 
-* to come up with themselves.  Furthermore a hash of this information is included 
-* as well, so if they just use a preexisting one and modify it, the hash will
-*ß not match.
+* pieces of the map.  As such we include a piece of data relevant to the 
+* current state of the game that it would be impossible or very difficult 
+* for enemy robots to come up with themselves.  Furthermore a hash of this
+* information is included as well, so if they just use a preexisting one
+*  and modify it, the hash will not match.
 *
-* This piece of information helps us determine the legitimacy in different ways
-* depending on where the robot receiving the message is located.  If the robot 
-* is farther than the broadcast range of the message, and it notices that in
-* the information, then it knows an enemy robot rebroadcasted our message,
-* modified or not.  
+* This piece of information helps us determine the legitimacy in different 
+* ways depending on where the robot receiving the message is located.  
+* If the robot is farther than the broadcast range of the message, and it
+* notices that in the information, then it knows an enemy robot 
+* rebroadcasted our message, modified or not.  
 * If a robot close to the original origin of the message receives two messages
 * with this same header information, one of them must be the enemy trying
 * to mess with us, since the information encoded within changes both for
@@ -113,7 +101,7 @@ public class MessageUtil {
         String[] messageStrings = new String[messages.size()];
         int counter = 0;
         for (ExtendedMessage m : messages) {
-            messageStrings[counter++] = m.toMessageString();
+            messageStrings[counter++] = m.toString();//toMessageString();
         }
         int[] header = createHeader(robotID, robotMessageID);
         MapLocation[] locations = new MapLocation[] { currentSquare };

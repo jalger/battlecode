@@ -22,20 +22,5 @@ public class MessageFactory {
 
 
 
-    /**
-     *
-     */
-    public static Message toMessage(Command first) { return null; }
-
-    public static Message toMessage(Command first, Command second)  { return null; }
-
-    public static Message toMessage(Command first, Command second, Command third)  { return null; }
-
-    public static Message toMessage(Command first, Command second, Command third, Command fourth)  { return null; }
-
-    public static Message toMessage(Command first, Command second, Command third, Command ... args)  { return null; }
-
-    public static List<Command> fromMessage(Message m) { return null; }
-
 
 }

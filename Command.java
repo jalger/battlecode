@@ -17,7 +17,7 @@ public class Command implements Comparable<Command> {
 
     // A priority is used for ordering commands
     public enum Priority {
-        LOW(0),
+            LOW(0),
             MEDIUM(1),
             HIGH(2),
             URGENT(3);

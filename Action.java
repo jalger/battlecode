@@ -9,7 +9,7 @@ import battlecode.common.Message;
 public interface Action {
 
     public enum ActionPossibilities {
-        ATTACK,
+            ATTACK,
             MOVE,
             DEFEND,
             CALCULATE_PATH,
