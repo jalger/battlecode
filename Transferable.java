@@ -17,4 +17,12 @@ public interface Transferable<T> {
     * @return true if successful, else false
     */
     public T fromIntArray(int[] array, int offset);
+    
+    /**
+     * 
+     * @return the number of ints it takes to represent this transferable
+     * object
+     */
+    public int getLength();
+    
 }

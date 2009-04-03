@@ -1,7 +1,5 @@
 package jj_nick;
 
-import battlecode.common.Message;
-
 /**
  * @author Nicholas Dunn
  * @date   February 28, 2009

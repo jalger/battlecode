@@ -1,7 +1,7 @@
 package jj_nick;
 
-import battlecode.common.*;
-import static battlecode.common.GameConstants.*;
+import battlecode.common.Clock;
+import battlecode.common.RobotController;
 
 
 public class RobotPlayer implements Runnable {
@@ -18,69 +18,66 @@ public class RobotPlayer implements Runnable {
         start = Clock.getBytecodeNum();
         finalNum = Clock.getBytecodeNum();
         int delta = finalNum - start;
-        /*
-        start = Clock.getBytecodeNum();
-        MiscInfo info = new MiscInfo.Builder(new MapLocation(100, 200)).range(MiscInfo.Range.SHORT).build();
+        int elapsed;
         
-        int [] result = info.toIntArray();
-        MiscInfo info2 = MiscInfo.PARSER.fromIntArray(result, 0);
         
-        //System.out.println(info);
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("MiscInfo took " + (finalNum - start - delta) + " bytecodes.");
-*/        
-        /*
-        
-        start = Clock.getBytecodeNum();
-        Path.testFromIntArray();
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Path.testFromIntArray took " + (finalNum - start - delta) + " bytecodes.");
+          Point [] points1 = new Point[] 
+            {                               
+                new Point(100, 200),
+                new Point(0,0),
+                new Point(-120581204,1),
+                new Point(105,105),
+                new Point (100, 20+31),
+                new Point(1500, 200),
+                new Point(0,20),
+                new Point(-125204,152),
+                new Point(105,1052),
+                new Point (100, 206)  
+            };
+            boolean [] traversable = new boolean[]
+            {
+                true,
+                true,
+                false,
+                false,
+                true,
+                true,
+                true,
+                false,
+                false,
+                true
+            };
 
-        start = Clock.getBytecodeNum();
-        Path.testToIntArray();
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Path.testToIntArray took " + (finalNum - start - delta) + " bytecodes.");
-*/
-        start = Clock.getBytecodeNum();
-        Path.main(null);
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Path.main took " + (finalNum - start - delta) + " bytecodes.");
-        
-        start = Clock.getBytecodeNum();
-        Path.main2(null);
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Path.main2 took " + (finalNum - start - delta) + " bytecodes.");
-        
-        
-        /*
-        try {
-            Point.main(null);
-        }
-        catch (Exception e) { System.out.println("didn't work"); }
-
-
-        start = Clock.getBytecodeNum();
-         Path.main(null);
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Path took " + (finalNum - start - delta) + " bytecodes.");
-
-
-        start = Clock.getBytecodeNum();
-        Point.testFromString();
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Point.testFromString() took " + (finalNum - start - delta) + " bytecodes.");
-        
-        start = Clock.getBytecodeNum();
-        Point.testToString();
-        finalNum = Clock.getBytecodeNum();
-        System.out.println("Point.testToString() took " + (finalNum - start - delta) + " bytecodes.");
+            int [] heights = new int[]
+            {
+                1,
+                3,
+                5,
+                -1,
+                0,
+                26,
+                6,
+                1,
+                2,
+                3
+            };
+            
+            
+            Fringe f = new Fringe(points1, traversable, heights);
+            
             
         
         start = Clock.getBytecodeNum();
-        MessageUtil.main(null);
+
+        f.toIntArray();
+
+
         finalNum = Clock.getBytecodeNum();
-        System.out.println("MessageUtil took " + (finalNum - start - delta) + " bytecodes.");
-        */
+        elapsed = (finalNum - start) - delta;
+        System.out.println("Took " + elapsed + " bytecodes to go to int "
+        +"arraye");
+
+
         
     }
 

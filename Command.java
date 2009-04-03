@@ -1,9 +1,7 @@
 package jj_nick;
 
-import battlecode.common.Message;
-import java.util.Map;
 import java.util.HashMap;
-import java.lang.Comparable;
+import java.util.Map;
 
 /**
  * A Command object represents a command that a commander delegates to
@@ -16,7 +14,8 @@ import java.lang.Comparable;
 public class Command implements Comparable<Command> {
 
     // A priority is used for ordering commands
-    public enum Priority {
+    public enum Priority
+    {
             LOW(0),
             MEDIUM(1),
             HIGH(2),
@@ -39,7 +38,7 @@ public class Command implements Comparable<Command> {
             integerToEnum.put(priority.getUrgency(), priority);
         }
     }
-    public static Priority fromByte(byte value) {
+    public static Priority fromInteger(int value) {
         return integerToEnum.get(value);
     }
 

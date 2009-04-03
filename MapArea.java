@@ -1,8 +1,6 @@
 package jj_nick;
 
-import java.util.Arrays;
-
-public class Map {
+public class MapArea {
 
 
     public static final String SEPARATOR = "#";
