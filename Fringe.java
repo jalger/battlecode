@@ -103,7 +103,7 @@ public class Fringe implements Transferable<Fringe> {
     */
     public Fringe fromIntArray(int[] array, int offset) {
         int size = array[offset];
-        // The points array taes two ints per Point, booleans take 1, and
+        // The points array takes two ints per Point, booleans take 1, and
         // heights take 1.
         final int numPoints = (size - 1) / SIZE_SCALE;
 

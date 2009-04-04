@@ -13,6 +13,10 @@ import java.util.Map;
  */
 public class Command implements Comparable<Command> {
 
+    public static final int IDENTIFIER = 2849690;
+    
+    static public final Command PARSER = new Command(null,null);
+
     // A priority is used for ordering commands
     public enum Priority
     {

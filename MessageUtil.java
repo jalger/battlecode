@@ -49,11 +49,13 @@ public class MessageUtil {
 
     // 3 for information, one for hash
     private static final int NUM_HEADER_FIELDS = 4;
+    private static final int ROBOT_ID_INDEX = 0;
+    private static final int ROBOT_MESSAGE_ID_INDEX = 1;
+    private static final int CLOCK_INDEX = 2;
+    private static final int HASH_INDEX = 3;
 
     // We include just 1 MapLocation in the message
     private static final int NUM_MAP_LOCATIONS = 1;
-
-
 
     public static void main (String [] args)
     {
@@ -64,25 +66,46 @@ public class MessageUtil {
 
     public void handleMessage(Message m) {
 
-    // if Message is from our team
-        // If it's been tampered with, ignore it
+        // if Message is from our team
+        if (fromOurTeam(m)) {
+    
+            // If it's been tampered with, ignore it
+            if (!isLegitimate(m)) {
+                return;
+            }
+            
+            // Else it's legitimate.
+            else {
+                // Parse message into its submessages
+                List<SubMessage> messages = unpack(m);
 
-        // Else it's legitimate.
-            // Parse message into its submessages
+                // For each submessage
+                for (SubMessage s : messages) {
+                    // Determine if it pertains to me, and act on it if so
+                    if (pertainsToMe(s)) {
+                        System.out.println(s + " pertains to me.");
+                    }
 
-            // For each submessage
-                // Determine if it pertains to me, and act on it if so
+                    // If should rebroadcast
+                    if (shouldRebroadcast(s)) {
+                        // rebroadcast, changing the header information to match
+                        // current state of game and robot information
+                        
+                        System.out.println("I should redbroadcast" + s);
+                        
+                    } // shouldRedbroadcast
+                } // for loop
+            } // legitimate
+        } // from our team
 
-                // If should rebroadcast
-                    // rebroadcast, changing the header information to match
-                    // current state of game and robot information
+        // else it's from the other team
+        else {
+            // deal with knowledge we can gain from message (early detection of robots)
 
-
-    // else it's from the other team
-        // deal with knowledge we can gain from message (early detection of robots)
-
-        // decide whether to try to screw up enemy communication by editing their message
-        // and rebroadcasting
+            // decide whether to try to screw up enemy communication by editing their message
+            // and rebroadcasting
+            System.out.println("Intercepted enemy message" + m);
+        }
 
     }
 
@@ -158,31 +181,22 @@ public class MessageUtil {
 
 
     private static int[] createHeader(int robotID, int robotMessageID) {
-
-
         // Fill an array with all the information that we use to distinguish
         // legitimate information
-        int[] headerInfo = new int[] {
-            robotID,
-            robotMessageID,
-            Clock.getRoundNum()
-        };
-        // Make a cryptographic hash out of this information
-        int hash = simpleHash(headerInfo);
-        // Make an array big enough to hold all the header info and hash
-        // information
-        int header[] = new int[headerInfo.length + 1];
-        System.arraycopy(headerInfo, 0, header, 0, headerInfo.length);
-
-        header[headerInfo.length] = hash;
-
+        int[] header = new int[NUM_HEADER_FIELDS];
+        header[ROBOT_MESSAGE_ID_INDEX] = robotMessageID;
+        header[ROBOT_ID_INDEX] = robotID;
+        header[CLOCK_INDEX] = Clock.getRoundNum();
+        
+        // Make a hash out of previous 3 values
+        header[HASH_INDEX] = simpleHash(header, 0, 3);
         return header;
     }
 
 
 
 
-    public static boolean pertainsToMe() {
+    public static boolean pertainsToMe(SubMessage m) {
         // Check if there is an intended robot ID and it matches you
 
 
@@ -190,7 +204,7 @@ public class MessageUtil {
 
         // Check if there is a specified robot type and it matches your robot type
 
-        return false;
+        return true;
     }
 
     /**
@@ -320,7 +334,8 @@ public class MessageUtil {
         return simpleHash(numbers, 0, numbers.length);
     }
 
-    public static int simpleHash(int[] numbers, int startIndex, int numberOfElements) {
+    public static int simpleHash(int[] numbers, int startIndex, 
+                                int numberOfElements) {
 
         int hash = 5381;
         for (int i = startIndex; i < startIndex + numberOfElements; i++) {

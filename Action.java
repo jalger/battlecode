@@ -8,7 +8,8 @@ public interface Action {
 
     public enum ActionPossibilities {
             ATTACK,
-            MOVE,
+            MOVE_TO,
+            GET_OUT_OF_WAY,
             DEFEND,
             CALCULATE_PATH,
             GIVE_ENERGON,

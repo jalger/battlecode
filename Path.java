@@ -1,5 +1,6 @@
 package jj_nick;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,14 +12,6 @@ import java.util.List;
 */
 
 public class Path implements Transferable<Path> {
-
-    // A path is represented as {{x0,y0}#{x1,y1}#...}
-
-    private static final String OPEN_BRACKET = "{";
-    private static final String CLOSE_BRACKET = "}";
-
-    private static final String FIELD_SEPARATOR = "#";
-    private static final String COORD_SEPARATOR = ",";
 
     private List<Point> waypoints;
 
@@ -59,18 +52,7 @@ public class Path implements Transferable<Path> {
     }
 
     public String toString() {
-        StringBuilder b = new StringBuilder();
-        b.append(OPEN_BRACKET);
-        // Iterate through all but the last element in list
-        for (int i = 0; i < waypoints.size() - 1; i++) {
-            b.append(waypoints.get(i).toString());
-            b.append(FIELD_SEPARATOR);
-        }
-        // Add the last element, and then close off the expression
-        b.append(waypoints.get(waypoints.size() - 1));
-        b.append(CLOSE_BRACKET);
-
-        return b.toString();
+        return waypoints.toString();
     }
 
     // TODO: This is not a *real* equals method because it does not
@@ -101,8 +83,8 @@ public class Path implements Transferable<Path> {
 
         Path[] paths = new Path[]
         {
-            new Path(java.util.Arrays.asList(points1)),
-            new Path(java.util.Arrays.asList(points2))
+            new Path(Arrays.asList(points1)),
+            new Path(Arrays.asList(points2))
         };
 
         for (Path p : paths) {

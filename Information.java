@@ -9,23 +9,22 @@ package jj_nick;
  * @date   February 28, 2009
  */
 public abstract class Information implements Transferable<Information> {
+    
+    static public final int IDENTIFIER = 399564;
+    
     public enum InformationType {
         MAP_DELTA,
         SELF_TROOP_STRENGTH,
         ENEMY_TROOP_STRENGTH,
-        WAYPOINTS,
+        PATH,
         COMPUTATION_RESULT,
         MENTAL_STATE,
         COMMAND_ACKNOWLEDGED,
         COMMAND_COMPLETED,
-        COMMAND_REFUSED
+        COMMAND_REFUSED,
+        FRINGE
     }
     
     
     
-    
-    
-    
-    
-
 }

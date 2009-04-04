@@ -24,5 +24,10 @@ public interface Transferable<T> {
      * object
      */
     public int getLength();
-    
+
+    /**
+    * Each transferable object must implement a unique ID that identifies it
+    * so that we can ensure the correct parsers are called
+    */
+        //public int getUniqueID();
 }
