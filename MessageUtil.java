@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 import battlecode.common.Clock;
 import battlecode.common.MapLocation;

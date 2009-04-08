@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 /**
 * Stupid little class to let us to assertions since battlecode does not

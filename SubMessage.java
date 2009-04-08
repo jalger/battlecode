@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 /**
 * A submessage represents meta information that tells a robot whether

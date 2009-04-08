@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 public abstract class SubMessageBody implements Transferable<SubMessageBody>
 {

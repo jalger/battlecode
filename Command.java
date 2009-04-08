@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package jj_nick;
+package teamJA_ND;
 
 /**
 * A MapArea represents a rectangular region of the map.
