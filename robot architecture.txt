@@ -1,0 +1,85 @@
+startup
+	initialize behavior tree
+run
+	startTurn();
+	State temp = getTransitionState();
+	if temp != null {
+		myState.onExit();
+		myState = temp;
+		myState.onEnter();
+	}
+	myState.update();
+	endTurn();
+
+___________________________________
+startTurn()
+getTransitionState()
+endTurn()
+	rc.broadcast()
+___________________________________
+onEnter() //Should be quick
+update() //Should return before current turn ends
+onExit() //Should be quick
+___________________________________
+State temp = transitionState()
+if temp != null {
+	myState.onExit();
+	myState = temp;
+	myState.onEnter();
+}
+
+public State getTransitionState()
+
+___________________________________
+
+State creation - takes in a pointer to a KB
+KB: stores what the robot knows
+
+Map
+	Terrain info.
+	Tower locations
+Unit estimates
+Unit knowledge (locations, teams, types)
+Robot information
+
+___________________________________
+Move									(Use inner classes?)
+	Behaviors desired:
+		Move to goal (Point)
+		Move to general area (Point + radius)
+		Move in direction (Direcion)
+		Move towards robot (RobotID)
+		Follow (RobotID, relative location Point)
+			Follow Partner
+Attack
+	Behaviors desired:
+		Move to distance X
+		Aim
+		Fire
+Retreat
+	Behaviors desired:
+		Move along given path
+		Move quickly without path
+Build/Maintenance
+	Behaviors desired:
+		Archon behavior:
+			Build units
+			Heal new units
+		Non-archon behavior:
+			Look-out/scout
+			Lossless suicide
+Prepare for battle
+	Behaviors desired:
+		Create formation towards given direction
+		Calculate escape path
+		Transfer energon as desired for battle / set energon preferences for battle
+Patrol (LATER?)
+	Behaviors desired:
+		Move to waypoint
+		Form up
+Idle (LATER?)
+	Behaviors desired:
+		Don't explode
+
+
+--> States use messageUtil.appendMessage(), but not rc.broadcast()

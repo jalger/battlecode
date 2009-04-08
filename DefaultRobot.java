@@ -55,6 +55,18 @@ public class DefaultRobot implements Runnable {
     public void run() {
 
 
+	/*
+     //Main run method here; uncomment when stuff is available to make it work.
+     startTurn();
+        State temp = getTransitionState();
+        if temp != null  {
+            myState.onExit();
+            myState = temp;
+            myState.onEnter();
+        }
+        myState.update();
+        endTurn();*/
+
                 //Uncomment to suicide down to 1 robot at start
                 /* MapLocation[] others = rc.senseAlliedArchons();
                 if (others.length != 1)
