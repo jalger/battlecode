@@ -289,19 +289,15 @@ public class MessageUtil {
            if (m.isTimeLimited()) {
                int latestRound = m.getLatestRoundRelevant();
                if (latestRound <= Clock.getRoundNum()) {
-
                }
            }*/
-
-
            // If I'm at the edge of the range of the intended audience
            // of this message, don't rebroadcast
-
            return false;
-
-       }
-
-
+    }
+    
+    
+    
     /**
     * Creates a hash of the given String in a simpler and less
     * computationally expensive way than the standard hashcode() function
@@ -323,19 +319,21 @@ public class MessageUtil {
     }
 
     /**
-     * Creates a hash of the given int array in a simpler and less
+    * Creates a hash of the given int array in a simpler and less
     * computationally expensive way than the standard hashcode() function
     * Implements the djb2 hashing algorithm, reported by Dan Bernstein.
     * Modified from C source
     * {@link http://www.cse.yorku.ca/~oz/hash.html}
     * @param numbers the array of ints to hash
-    */
-    public static int simpleHash(int[] numbers) {
+    **/
+    public static int simpleHash(int[] numbers) 
+    {
         return simpleHash(numbers, 0, numbers.length);
     }
 
     public static int simpleHash(int[] numbers, int startIndex, 
-                                int numberOfElements) {
+                                int numberOfElements) 
+    {
 
         int hash = 5381;
         for (int i = startIndex; i < startIndex + numberOfElements; i++) {
@@ -347,7 +345,10 @@ public class MessageUtil {
 
 
 
+    
+    
 
+    
 
 }
 

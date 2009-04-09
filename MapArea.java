@@ -70,7 +70,7 @@ public class MapArea implements Transferable<MapArea> {
         Holder h = fromString(repr);
         System.out.println(h);
 
-        assert(repr.equals(h.toString()));*/
+        Assert.Assert(repr.equals(h.toString()));*/
     }
 
 
@@ -149,7 +149,7 @@ public class MapArea implements Transferable<MapArea> {
     }*/
 
     public static boolean[][] parseMapString(int rows, int cols, String mapString) {
-        assert(mapString.length() == rows * cols);
+        Assert.Assert(mapString.length() == rows * cols);
 
         boolean[][] map = new boolean[rows][cols];
         char[] chars = mapString.toCharArray();
@@ -177,13 +177,13 @@ public class MapArea implements Transferable<MapArea> {
         int width = right - left;
         int height = bottom - top;
 
-        assert(width > 0);
-        assert(height > 0);
+        Assert.Assert(width > 0);
+        Assert.Assert(height > 0);
 
-        assert (groundTraversable.length == visited.length);
-        assert (groundTraversable[0].length == visited[0].length);
-        assert (groundTraversable.length == height);
-        assert (groundTraversable[0].length == width);
+        Assert.Assert (groundTraversable.length == visited.length);
+        Assert.Assert (groundTraversable[0].length == visited[0].length);
+        Assert.Assert (groundTraversable.length == height);
+        Assert.Assert (groundTraversable[0].length == width);
 
         // Format for String will be
         // left # top # right # bottom # groundTraversable # visited

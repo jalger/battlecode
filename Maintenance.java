@@ -1,8 +1,7 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
+ * The Maintenance state is used both to build up a force (create units)
+ * and keep a force going (heal units).
+*/
 package teamJA_ND;
 
 /**
@@ -10,6 +9,10 @@ package teamJA_ND;
  * @author J.J. Alger
  */
 public class Maintenance extends State {
+
+    public Maintenance() {
+        
+    }
 
     public void onEnter() {
 
