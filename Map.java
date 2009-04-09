@@ -418,7 +418,7 @@ public class Map {
     }
 
     public boolean traceAroundObstacle(VirtualBugLocation current, int x1, int y1, double maxCost) {
-        assert(groundPassableArrayCoords(current.x, current.y));
+        Assert.Assert(groundPassableArrayCoords(current.x, current.y));
         
         if (current.x == x1 && current.y == y1)
             return true;
@@ -426,7 +426,7 @@ public class Map {
         int n_preferred = deadReckonIndex(current.x, current.y, x1, y1);
         int xNext = current.x + directions[n_preferred].x;
         int yNext = current.y + directions[n_preferred].y;
-        assert(!groundPassableArrayCoords(xNext, yNext));
+        Assert.Assert(!groundPassableArrayCoords(xNext, yNext));
 
         double minDistance = estimateDistance(current.x, current.y, x1, y1);
         int direc = n_preferred;
@@ -481,7 +481,7 @@ public class Map {
     }
 
     public boolean advanceToWall(VirtualBugLocation current, int x1, int y1) {
-        assert(groundPassableArrayCoords(current.x, current.y));
+        Assert.Assert(groundPassableArrayCoords(current.x, current.y));
 
         int n_preferred = -1;
         while (groundPassableArrayCoords(current.x, current.y) && (current.x != x1 || current.y != y1)) {
@@ -497,7 +497,7 @@ public class Map {
 
     
     public Vector<Point> buildPath(Stack<VirtualBugLocation> waypoints) {
-        assert(waypoints != null);
+        Assert.Assert(waypoints != null);
         Vector<Point> result = new Vector<Point>();
         if (waypoints.size() < 2) {
             if (waypoints.size() == 0) {
@@ -601,7 +601,7 @@ public class Map {
     }
 
     public Vector<Point> trimPath(Vector<Point> path) {
-        assert (path != null);
+        Assert.Assert (path != null);
         Point start, end;
         for (int i = 0; i < path.size() - 2; i++) {
             for (int j = path.size() - 1; j > i + 1; j--) {

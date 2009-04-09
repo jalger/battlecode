@@ -43,7 +43,7 @@ Unit knowledge (locations, teams, types)
 Robot information
 
 ___________________________________
-Move									(Use inner classes?)
+JJ - Move									(Use inner classes?)
 	Behaviors desired:
 		Move to goal (Point)
 		Move to general area (Point + radius)

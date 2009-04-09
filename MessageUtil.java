@@ -263,7 +263,7 @@ public class MessageUtil {
 
         // Check for violations of precondition; fromOurTeam should have handled
         // this earlier.
-        assert (strings != null && ints != null);
+        Assert.Assert (strings != null && ints != null);
 
         // Check to see if there is exactly one integer (hash) per string
         if (strings.length != ints.length) {

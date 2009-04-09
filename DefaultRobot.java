@@ -363,11 +363,11 @@ public class DefaultRobot implements Runnable {
 
     public boolean senseMovable(MapLocation loc) {
         //Make sure that the location is in-bounds
-        assert (loc.getX() + myMap.dx >= 0);
-        assert (loc.getY() + myMap.dy >= 0);
-        assert (loc.getX() + myMap.dx < myMap.ARRAY_WIDTH);
-        assert (loc.getY() + myMap.dy < myMap.ARRAY_HEIGHT);
-        assert (rc.canSenseSquare(loc));
+        Assert.Assert (loc.getX() + myMap.dx >= 0);
+        Assert.Assert (loc.getY() + myMap.dy >= 0);
+        Assert.Assert (loc.getX() + myMap.dx < myMap.ARRAY_WIDTH);
+        Assert.Assert (loc.getY() + myMap.dy < myMap.ARRAY_HEIGHT);
+        Assert.Assert (rc.canSenseSquare(loc));
 
         //Check for squares with invalid terrain
         if (!rc.senseTerrainTile(loc).isTraversableAtHeight(RobotLevel.ON_GROUND)) {
