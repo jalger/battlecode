@@ -1,4 +1,4 @@
-package teamJA_ND;
+package comm.teamJA_ND;
 
 /**
  * This class represents any sort of information that a robot might

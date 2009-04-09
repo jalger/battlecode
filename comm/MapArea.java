@@ -1,4 +1,6 @@
-package teamJA_ND;
+package comm.teamJA_ND;
+
+import util.teamJA_ND.Assert;
 
 /**
 * A MapArea represents a rectangular region of the map.

@@ -1,10 +1,11 @@
-package teamJA_ND;
+package comm.teamJA_ND;
 
 import battlecode.common.Clock;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import java.util.LinkedList;
 import java.util.List;
+import util.teamJA_ND.Assert;
 
 /**
 * A Message contains a String array, an int array, and a
@@ -76,6 +77,13 @@ public class MessageUtil {
             
             // Else it's legitimate.
             else {
+                // For each submessageheader, determine if it pertains to me.
+                    // If so, parse out the corresponding body.
+                    
+                // 
+                
+                
+                
                 // Parse message into its submessages
                 List<SubMessage> messages = unpack(m);
 

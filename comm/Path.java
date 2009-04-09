@@ -1,8 +1,10 @@
-package teamJA_ND;
+package comm.teamJA_ND;
 
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+
+import teamJA_ND.Point;
 
 /**
 * A Path simply consists of a list of points that can be dead reckoned

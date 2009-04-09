@@ -1,15 +1,19 @@
-package teamJA_ND;
-
+package comm.teamJA_ND;
+import util.teamJA_ND.Assert;
 /**
 * A submessage represents meta information that tells a robot whether
 * the body of the message is intended for it, as well as the body
 * of the message itself.
 *
-
+* SubMessageHeaders and SubMessageBodies are similar in that both must
+* be able to be converted to and from an int array.  Since these objects
+* are serialized into a series of ints, there are two important things they
+* must do: indicate how big they are (how many elements within the int array)
+* as well as what type of object they are.
 *
 * @author Nicholas Dunn
 * @date   April 4, 2009
-*/
+**/
 public class SubMessage implements Transferable<SubMessage> {
 
     private SubMessageHeader header;

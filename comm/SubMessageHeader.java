@@ -1,4 +1,4 @@
-package teamJA_ND;
+package comm.teamJA_ND;
 
 import battlecode.common.MapLocation;
 
