@@ -59,6 +59,8 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
         ALL
     }
 
+    
+
     /**
     * How many ints does it take to represent the corresponding 
     * <code>SubMessageBody</code>

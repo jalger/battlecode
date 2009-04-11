@@ -1,4 +1,4 @@
-package teamJA_ND;
+package teamJA_ND.comm;
 
 /**
  * @author Nicholas Dunn

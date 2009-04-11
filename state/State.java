@@ -1,4 +1,4 @@
-package state.teamJA_ND;
+package teamJA_ND.state;
 
 /**
  * A State is a high level representation of the way a robot behaves.  For

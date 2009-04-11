@@ -99,5 +99,15 @@ public class Command implements Comparable<Command> {
             return id - o.id;
         }
     }
+    
+    
+    // Inner classes
+
+
+  
+
+    
+    
+    
 
 }

@@ -2,7 +2,7 @@
  * The Maintenance state is used both to build up a force (create units)
  * and keep a force going (heal units).
 */
-package state.teamJA_ND;
+package teamJA_ND.state;
 
 /**
  *

@@ -66,16 +66,17 @@ public class MessageUtil {
 
 
     /**
-    * 
+    * @return a list of SubMessageBody objects, each of which contains 
+    * information about what action to take, or general information.
     **/
-    public void handleMessage(Message m, KnowledgeBase kb) {
+    public List<SubMessageBody> getRelevantSubMessages(Message m, KnowledgeBase kb) {
 
         // if Message is from our team
         if (fromOurTeam(m)) {
     
             // If it's been tampered with, ignore it
             if (!isLegitimate(m)) {
-                return;
+                return null;
             }
             
             // Else it's legitimate.
@@ -83,8 +84,11 @@ public class MessageUtil {
                 /*
                 List <SubMessageHeader> headers = unpackHeaders(m);
                 for (SubMessageHeader h : headers) {
+                    List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
                     if (h.pertainsToRobot(kb)) {
+                        SubMessageBody b = SubMessageBody.parse()
                         // Parse the body that corresponds with the header
+                        bodies.add();
                     }
                     
                     if (h.shouldBeRebroadcast()) {
@@ -97,7 +101,7 @@ public class MessageUtil {
                 // 
                 
                 
-                
+                /*
                 // Parse message into its submessages
                 List<SubMessage> messages = unpack(m);
 
@@ -117,6 +121,7 @@ public class MessageUtil {
                         
                     } // shouldRedbroadcast
                 } // for loop
+                */
             } // legitimate
         } // from our team
 
@@ -128,7 +133,7 @@ public class MessageUtil {
             // and rebroadcasting
             System.out.println("Intercepted enemy message" + m);
         }
-
+        return null;
     }
 
 
@@ -160,8 +165,8 @@ public class MessageUtil {
 
     public static Message pack(List<SubMessage> messages, 
                                MapLocation currentSquare,
-                                int robotID,
-                                int robotMessageID) {
+                               int robotID,
+                               int robotMessageID) {
         // Create a header and encode the location of sending robot
         int[] header = createHeader(robotID, robotMessageID);
         MapLocation[] locations = new MapLocation[] { currentSquare };
@@ -213,21 +218,6 @@ public class MessageUtil {
         // Make a hash out of previous 3 values
         header[HASH_INDEX] = simpleHash(header, 0, 3);
         return header;
-    }
-
-
-    
-
-
-    public static boolean pertainsToMe(SubMessage m) {
-        // Check if there is an intended robot ID and it matches you
-
-
-        // Check if there is a group of intended recipients and it matches one of your groups
-
-        // Check if there is a specified robot type and it matches your robot type
-
-        return true;
     }
 
     /**
@@ -298,27 +288,9 @@ public class MessageUtil {
         if (simpleHash(strings[0]) != ints[0]) {
             return false;
         }
-
-
         return false;
-
-
     }
 
-    public static boolean shouldRebroadcast(SubMessage m) {
-           // If it's a time limited message, and I'm past the time limit,
-           // don't broadcast
-           /*
-           if (m.isTimeLimited()) {
-               int latestRound = m.getLatestRoundRelevant();
-               if (latestRound <= Clock.getRoundNum()) {
-               }
-           }*/
-           // If I'm at the edge of the range of the intended audience
-           // of this message, don't rebroadcast
-           return false;
-    }
-    
     
     
     /**
