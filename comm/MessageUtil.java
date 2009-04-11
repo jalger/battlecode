@@ -65,6 +65,9 @@ public class MessageUtil {
     }
 
 
+    /**
+    * 
+    **/
     public void handleMessage(Message m, KnowledgeBase kb) {
 
         // if Message is from our team
