@@ -12,11 +12,13 @@ package teamJA_ND;
 
 public class VirtualBugLocation implements Comparable<VirtualBugLocation>{
 
-    protected int x, y;
-    protected double d;
-    protected double scoreEstimate;
-    protected VirtualBugLocation parent;
-    protected boolean rightWallFollow;
+    public int x, y; //Please don't abuse the public int. Needs to be public
+                     //for very-fast access in some time-sensitive operations
+                     //in other packages.
+    public double d;
+    public double scoreEstimate;
+    public VirtualBugLocation parent;
+    public boolean rightWallFollow;
     public static final double SQRT2 = 1.414;
 
     public VirtualBugLocation(int xIn, int yIn, double dIn) {
@@ -24,6 +26,7 @@ public class VirtualBugLocation implements Comparable<VirtualBugLocation>{
         y = yIn;
         d = dIn;
         scoreEstimate = Integer.MAX_VALUE;
+        parent = null;
     }
 
     public VirtualBugLocation(VirtualBugLocation parentIn) {

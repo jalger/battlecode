@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.Vector;
+import teamJA_ND.comm.*;
+import teamJA_ND.state.*;
+import teamJA_ND.util.*;
 
 public class DefaultRobot implements Runnable {
 
@@ -38,12 +41,14 @@ public class DefaultRobot implements Runnable {
 
     protected int clockTurnNum;
     protected int clockByteNum;
+    protected int bytecodesReserved;
 
 
     public DefaultRobot(RobotController rcIn) {
         rc = rcIn;
         sensorRadius = rcIn.getRobotType().sensorRadius();
 
+        
         tracing = false;
         rightWallFollow = false;
         tracingDisengageDistance = 0;
@@ -75,6 +80,7 @@ public class DefaultRobot implements Runnable {
                  
 
 
+                bytecodesReserved = 200;
                 MapLocation towers[] = rc.senseAlliedTowers();
                 myMap = new Map(towers[0].getX(), towers[0].getY());
                 if (!rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]))
@@ -115,17 +121,13 @@ public class DefaultRobot implements Runnable {
 
                 if (Clock.getRoundNum() > 0 && !pathfound) {
                     pathfound = true;
-                    Point[] goals = new Point[12];
+                    Point[] goals = new Point[4];
                     for (int i = 0; i < goals.length; i += 2) {
                         goals[i] = new Point(47,47);
                     }
-                    goals[1] = new Point(goals[0].x + 30,goals[0].y+25);
+                    goals[1] = new Point(goals[0].x + 33,goals[0].y);
                     goals[3] = goals[1];
-                    goals[5] = goals[1];
-                    goals[7] = new Point(goals[0].x + 30, goals[0].y + 25);
-                    goals[9] = goals[7];
-                    goals[11] = goals[7];
-                    for (int i = 0; i < goals.length; i++) {
+                    for (int i = 0; i < 2; i++) {
                         goal = new MapLocation(goals[i].x - myMap.dx, goals[i].y - myMap.dy);
                         boolean success = false;
                         System.out.println("Departing for " + (goal.getX() + myMap.dx) + ", " + (goal.getY() + myMap.dy));
@@ -135,12 +137,19 @@ public class DefaultRobot implements Runnable {
                         MapLocation current = rc.getLocation();
                         System.out.println("Arrived. " + (current.getX() + myMap.dx) + ", " + (current.getY() + myMap.dy));
                     }
+                    State myState = (State)(new Move(myMap, rc, this).setGoal(goals[2]));
+                    myState.onEnter();
+                    while (true) {
+                        myState.update();
+                        rc.yield();
+                    }
                 }
 
             /*** end of main loop ***/
             } catch (Exception e) {
                 System.out.println("caught exception:");
                 e.printStackTrace();
+                myMap.debug_printMap();
             }
         }
     }
@@ -166,7 +175,7 @@ public class DefaultRobot implements Runnable {
 
     protected boolean headTowards(MapLocation goal) {
         Stack<VirtualBugLocation> result = null;
-        result = myMap.tangentBug(rc.getLocation(), goal, 3000.0, result);
+        result = myMap.tangentBug(rc.getLocation(), goal, 200.0, result);
         Vector<Point> myPath = myMap.buildPath(result);
         myMap.trimPath(myPath);
         if (myPath.size() > 4) {
@@ -423,5 +432,9 @@ public class DefaultRobot implements Runnable {
         if (rc.getLocation().equals(goal))
             return true;
         return false;
+    }
+
+    public int getBytecodesReserved() {
+        return bytecodesReserved;
     }
 }

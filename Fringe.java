@@ -6,6 +6,12 @@ package teamJA_ND;
 * discovered at the edge of its sensor range and wishes to transfer to
 * other robots
 */
+
+
+import teamJA_ND.comm.*;
+import teamJA_ND.state.*;
+import teamJA_ND.util.*;
+
 public class Fringe implements Transferable<Fringe> {
 
 
