@@ -1,4 +1,4 @@
-package util.teamJA_ND;
+package teamJA_ND.util;
 
 /**
 * Stupid little class to let us to assertions since battlecode does not

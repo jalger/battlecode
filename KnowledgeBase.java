@@ -24,4 +24,15 @@ public class KnowledgeBase {
     // Own troop strength
     // Enemy troop strength
     // Task force id
+    
+    // TODO: These really should not be public.
+    public int robotID;
+    public int taskforceID;
+    public int squadID;
+    /**
+    * Represents the type of the robot; mimics the enum already written but
+    * in powers of 2 so we can do bit packing.
+    **/
+    public int robotType;
+    
 }

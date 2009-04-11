@@ -1,11 +1,12 @@
-package comm.teamJA_ND;
+package teamJA_ND.comm;
 
 import battlecode.common.Clock;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import java.util.LinkedList;
 import java.util.List;
-import util.teamJA_ND.Assert;
+import teamJA_ND.util.Assert;
+import teamJA_ND.KnowledgeBase;
 
 /**
 * A Message contains a String array, an int array, and a
@@ -61,11 +62,10 @@ public class MessageUtil {
     public static void main (String [] args)
     {
 
-
     }
 
 
-    public void handleMessage(Message m) {
+    public void handleMessage(Message m, KnowledgeBase kb) {
 
         // if Message is from our team
         if (fromOurTeam(m)) {
@@ -77,6 +77,17 @@ public class MessageUtil {
             
             // Else it's legitimate.
             else {
+                /*
+                List <SubMessageHeader> headers = unpackHeaders(m);
+                for (SubMessageHeader h : headers) {
+                    if (h.pertainsToRobot(kb)) {
+                        // Parse the body that corresponds with the header
+                    }
+                    
+                    if (h.shouldBeRebroadcast()) {
+                        // Make sure that the resulting int stuff ends up there
+                    }
+                }*/
                 // For each submessageheader, determine if it pertains to me.
                     // If so, parse out the corresponding body.
                     
@@ -202,6 +213,7 @@ public class MessageUtil {
     }
 
 
+    
 
 
     public static boolean pertainsToMe(SubMessage m) {

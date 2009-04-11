@@ -1,8 +1,8 @@
-package comm.teamJA_ND;
+package teamJA_ND.comm;
 
 import battlecode.common.Message;
 
-import util.teamJA_ND.Assert;
+import teamJA_ND.util.Assert;
 
 public class CounterCommunication 
 {

@@ -1,7 +1,10 @@
-package comm.teamJA_ND;
+package teamJA_ND.comm;
 
 import battlecode.common.MapLocation;
-
+import battlecode.common.RobotController;
+import battlecode.common.Clock;
+import teamJA_ND.KnowledgeBase;
+import teamJA_ND.util.Assert;
 
 /**
 * Represents miscellaneous information that must be transfered along
@@ -14,16 +17,28 @@ import battlecode.common.MapLocation;
 public class SubMessageHeader implements Transferable<SubMessageHeader>
 {
 
+
+    // TODO: Probably could eliminate the range and just encode a straight
+    // squared distance
+
     /**
     * Determines the intended range of the message.
     * Used to decide whether or not an SubMessage
     * should be rebroadcast.
     */
     public enum Range {
-      SHORT,
-      MEDIUM,
-      LONG,
-      INFINITE
+        // 4 square radius
+      SHORT(16),
+      // 8 square radius
+      MEDIUM(64),
+      // 16 square radius
+      LONG(256),
+      INFINITE(Integer.MAX_VALUE);
+      private int squaredDist;
+      Range(int squaredDist) {
+          this.squaredDist = squaredDist;
+      }
+      public int getSquaredDist() { return squaredDist; }
     };
 
     /**
@@ -52,7 +67,8 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     * This would create a SubMessageHeader with default values except for the range and the passed
     * in (required) origin
     */
-    public static class Builder {
+    public static class Builder 
+    {
 
         // Required parameter
         private MapLocation origin;
@@ -188,6 +204,54 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
         };
         return message;
     }
+    
+    
+    /**
+    * Given a <code>KnowledgeBase</code> representing what a given robot knows 
+    * (including information about itself) determine if this header indicates 
+    * that the message is intended for the bot owning the 
+    * <code>KnowledgeBase</code>.
+    * @param kb the KnowledgeBase containing information about the robot
+    **/
+    public boolean pertainsToRobot(RobotController rc, KnowledgeBase kb) {
+        
+        // The recipient field is written as the logical OR of multiple powers
+        // of two.  The IDs are all assigned to be powers of two.  Thus we can
+        // check to see if the given ID is part of intended audience by
+        // taking logical AND of the recipient field and the id field.  A
+        // nonzero result indicates that the bit was set, meaning that the
+        // message is intended for this robot.
+
+        switch (recipientType) {
+            case TASK_FORCE:
+                return (recipients & kb.taskforceID) != 0;
+            case SQUAD:
+                return (recipients & kb.squadID) != 0;
+            case ROBOT:
+                return (recipients & kb.robotID) != 0;
+            case ROBOT_TYPE:
+                return (recipients & kb.robotType) != 0;
+            case ALL:
+                return true;
+            default:
+                Assert.Assert(false, "Error: fell through switch statements in pertainsToRobot.  recipientType: " + recipientType);
+                return false;
+        }
+    }
+    
+    public boolean shouldRebroadcast(MapLocation curLocation) {
+           // If it's a time limited message, and I'm past the time limit,
+           // don't broadcast
+           if (timeLimited) {
+               return latestRoundRelevant < Clock.getRoundNum();
+           }
+           if (range == Range.INFINITE) {
+               return true;
+           }
+           // Only rebroadcast if within the range specified
+           return curLocation.distanceSquaredTo(origin) < range.getSquaredDist();
+    }
+    
 
     /**
     * Attempts to populate the fields of this object from the

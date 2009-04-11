@@ -9,9 +9,10 @@ public class RobotPlayer implements Runnable {
 
     public RobotPlayer(RobotController rcIn) {
         switch(rcIn.getRobotType()) {
-            case ARCHON: me = new Archon(rcIn); break;
+            default: me = new CommunicationRobot(rcIn); break;
+/*            case ARCHON: me = new Archon(rcIn); break;
             case SOLDIER: me = new Soldier(rcIn); break;
-            default: me = new DefaultRobot(rcIn); break;
+            default: me = new DefaultRobot(rcIn); break;*/
         }
     }
 
