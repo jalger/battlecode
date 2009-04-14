@@ -1,4 +1,4 @@
-package comm.teamJA_ND;
+package teamJA_ND.comm;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -99,5 +99,15 @@ public class Command implements Comparable<Command> {
             return id - o.id;
         }
     }
+    
+    
+    // Inner classes
+
+
+  
+
+    
+    
+    
 
 }

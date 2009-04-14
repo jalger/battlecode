@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package state.teamJA_ND;
+package teamJA_ND.state;
 
 /**
  *
