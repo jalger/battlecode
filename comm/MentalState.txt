@@ -1,0 +1,6 @@
+MentalState 
+MENTAL_STATE
+private int robotID;
+private Point points;
+private boolean testing;
+private MapLocation testing2;

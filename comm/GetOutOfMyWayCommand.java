@@ -25,5 +25,4 @@ public class GetOutOfMyWayCommand extends SubMessageBody {
     public int[] toIntArray() {
         return new int[] { LENGTH, ID, robotID};
     }
-    
 }

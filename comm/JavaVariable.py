@@ -9,6 +9,10 @@ BOOLEAN = "boolean"
 POINT = "Point"
 MAP_LOCATION = "MapLocation"
 
+PACKAGE = "teamJA_ND"
+POINT_LOC = PACKAGE + "." + POINT
+MAP_LOCATION_LOC = "battlecode.common.MapLocation";
+
 class Variable:
     
       #private int x;
@@ -50,17 +54,27 @@ class VariableImplementation:
     def __init__(self, name):
         self.name = name
     
+    # By default, do not need an import statement
+    def neededImport(self):
+        return None
+    
     def numIntsToRepresent(self):
         pass
 
     def fromInt(self, ints, offset):
+        """
+        Returns a list of Strings, one per line, giving the steps necessary
+        to recreate this variable from the int array, as well as the string
+        expression of how many ints to advance the counter
+        """
         pass
 
-   	def toInt(self, index):
+   	def toInt(self):
    	    pass
 
         
 class Int(VariableImplementation):
+    
     def default(self):
         return "0"
     
@@ -68,12 +82,16 @@ class Int(VariableImplementation):
         return "1"
         
     def fromInt(self, ints, offset):
-        self.value = ints    
+        return ["int " + self.name + " = " + ints + "[" + str(offset) + "];"], self.numIntsToRepresent()
+
         
     def toInt(self):
         return [self.name]
         
 class Point(VariableImplementation):
+    def neededImport(self):
+        return POINT_LOC
+    
     def default(self):
         return "null"
 
@@ -81,11 +99,16 @@ class Point(VariableImplementation):
         return "2"
 
     def fromInt(self, ints, offset):
-        this.x = ints[0]
-        this.y = ints[1]
-    
+        try:
+            counterPlusOne = str(int(offset) + 1)
+        except ValueError:
+            counterPlusOne = offset + " + 1"
+            print offset, counterPlusOne
+            
+        return ["Point " + self.name + " = new Point(" + ints + "[" + offset + "], " + ints + "[" + counterPlusOne + "]);"], self.numIntsToRepresent()
+        
     def toInt(self):
-        return [self.name + ".getX()", self.name + ".getY()"]
+        return [self.name + ".x", self.name + ".y"]
         
 class Boolean(VariableImplementation) :
     def default(self):
@@ -95,21 +118,27 @@ class Boolean(VariableImplementation) :
         return "1"
 
     def fromInt(self, ints, offset):
-        pass
+        return ["boolean " + self.name + " = (" + ints + "[" + str(offset) + "] == 1);"], self.numIntsToRepresent() 
         
     def toInt(self):
         return [self.name + " ? 1 : 0"]
         
 class MapLocation(VariableImplementation) :
+    def neededImport(self):
+        return MAP_LOCATION_LOC;
+    
     def default(self):
         return "null"
 
     def numIntsToRepresent(self):
         return "2"
 
-    def fromInt(self, ints):
-        this.x = ints[0]
-        this.y = ints[1]
+    def fromInt(self, ints, offset):
+        try:
+            counterPlusOne = str(int(offset) + 1)
+        except ValueError:
+            counterPlusOne = offset + " + 1"
+        return ["MapLocation " + self.name + " = new MapLocation(" + ints + "[" + str(offset) + "], " + ints + "[" + counterPlusOne + "]);"], self.numIntsToRepresent()
 
     def toInt(self):
         return [self.name + ".getX()", self.name + ".getY()"]
@@ -119,4 +148,10 @@ class Array(VariableImplementation):
     def default(self):
         return "null"
         
-                
+
+class Int1DArray(Array):
+    def numIntsToRepresent(self):
+        return self.name + ".length"
+        
+    def toInt(self):    
+        pass

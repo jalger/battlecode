@@ -79,7 +79,7 @@ def processFile(f):
     
     
     newFile = open(classTitle + FILE_EXTENSION, "w")
-    writeHeader(f=newFile, title=classTitle)
+    writeHeader(f=newFile, title=classTitle, variables=variables)
     newFile.write("{\n")
     
     writeDeclarations(newFile, classTitle, enumID, variables)
@@ -91,8 +91,16 @@ def processFile(f):
 
     
     
-def writeHeader(f, title, packageName = "teamJA_ND.comm"):
+def writeHeader(f, title, variables, packageName = "teamJA_ND.comm"):
     f.write("package " + packageName + ";\n")
+    f.write("\n\n")
+    #unique imports we need
+    neededImports = list(set([ var.implementation.neededImport() for var in variables]))
+    for neededImport in neededImports:
+        if (neededImport != None):
+            f.write("import " + neededImport + ";\n")
+    
+    f.write("\n\n")
     f.write("public class " + title + " extends " + EXTENDS_FILE)
 
     
@@ -100,7 +108,7 @@ def writeDeclarations(f, title, enumID, declarations):
     for declaration in declarations:
         f.write("\t" + str(declaration) + "\n")
         
-    f.write("\tpublic static final int ID = " + ENUM_FILE + "." + ENUM_NAME +".getID();\n")    
+    f.write("\tpublic static final int ID = " + ENUM_FILE + "." + ENUM_NAME + "." + enumID + ".getID();\n")    
     f.write("\tpublic static final int LENGTH = " + str(calculateLength(declarations)) + ";\n")
     
     # Write the static parser declaration
@@ -120,7 +128,6 @@ def getDefaultArguments(declarations):
 def getRequiredArguments(variables):
     strings = [ v.type + " " + v.name for v in variables ]
     
-    
     result = ""
     for string in strings:
         result += string + ", "
@@ -135,10 +142,16 @@ def writeFunctions(f, classTitle, enumID, declarations):
     
     writeGetLength(f, declarations)
 
+    writeGetID(f)
+
     writeToIntArray(f, classTitle, declarations)
     
     writeFromIntArray(f, classTitle, declarations)
-        
+    
+    writeGetters(f, declarations)    
+    
+def writeGetID(f):
+    f.write("\tpublic int getID() { return ID; }\n\n")    
     
 def writeConstructor(f, classTitle, declarations):
     #Constructor
@@ -151,13 +164,24 @@ def writeConstructor(f, classTitle, declarations):
     
     pass
 
+def writeGetters(f, variables):
+    for variable in variables:
+        name = variable.name[0].upper() + variable.name[1:]
+        f.write("\tpublic " + variable.type + " get" + name +"() {\n")
+        f.write("\t\treturn " + variable.name + ";\n")
+        f.write("\t}\n")
+
+
+
 def calculateLength(declarations):
     # minimum length of two
     MIN_LENGTH = 2
+    
 #    additional = sum([decl.implementation.numIntsToRepresent() for decl in declarations])
  #   return MIN_LENGTH + additional
     return MIN_LENGTH
-    
+
+# TODO: Length is not constant in the presence of arrays.    
 def writeGetLength(f, declarations):
     f.write("\tpublic int getLength() {\n")
     f.write("\t\treturn LENGTH;\n")
@@ -179,12 +203,45 @@ def writeToIntArray(f, classTitle, variables):
             f.write("\t\tarray[" + str(counter) + "] = " + val + ";\n")
             counter = counter + 1
     
+    
+    f.write("\t\treturn array;\n")
     f.write("\t}\n")
     
     pass
     
-def writeFromIntArray(f, classTitle, declarations):
-    f.write("\tpublic " + classTitle + " fromIntArray(int[] array) {\n")
+def writeFromIntArray(f, classTitle, variables):
+    f.write("\tpublic " + classTitle + " fromIntArray(int[] array, int offset) {\n")
+    
+    f.write("\t\tint counter = 2 + offset;\n")
+    counter = "counter"
+    for variable in variables:
+        var = variable.implementation
+        
+        strings, counterIncrement = var.fromInt("array", counter)
+        for line in strings:
+            f.write("\t\t" + line + "\n")
+        
+        # See if the counter and increment can be changed into ints (not all)    
+        # counter increments can
+        try:
+            intCounter = int(counter)
+            intIncrement = int(counterIncrement)
+            counter = str(intCounter + intIncrement)
+        # Couldn't convert to ints, stay in strings
+        except ValueError:    
+            counter += " + " + counterIncrement    
+    
+    
+    names = [ v.name for v in variables ]
+
+    constructorArgs = ""
+    for name in names:
+        constructorArgs += name + ", "
+
+    # cut off extra comma and space
+    constructorArgs = constructorArgs[:-2]
+    
+    f.write("\t\treturn new " + classTitle + "(" + constructorArgs + ");\n")
     
     f.write("\t}\n")
     pass
