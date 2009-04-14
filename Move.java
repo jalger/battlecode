@@ -61,6 +61,7 @@ public class Move extends State {
     protected int lastCertainWaypoint, waypointToSkipTo;
 
     //Private variables for moving along the given path
+    protected boolean flying;
 
     //Private variables to speed up access to some frequently-callled methods and whatnot.
     protected KnowledgeBase myKnowledge;
@@ -113,6 +114,7 @@ public class Move extends State {
     }
 
     public void onEnter() {
+        System.out.println("Move called; turns to wait: " + rc.getRoundsUntilMovementIdle());
         myPath = new Vector<Point>();
         currDirIndex = direcToPointIndex(rc.getDirection());
         airMoveRate = 0;
@@ -124,6 +126,7 @@ public class Move extends State {
         y0 = temp.getY() + myMap.getdy();
         tracingStarted = false;
         resetPath();
+        flying = rc.getRobot().getRobotLevel() == RobotLevel.IN_AIR;
     }
 
     public void update() {
@@ -132,28 +135,54 @@ public class Move extends State {
             currentRound = Clock.getRoundNum();
         } else {
             return; //This update method does not support parallel work with
-        }                    //other states, as it's too dangerous. Update can be called
-        //only once per turn.
+        }           //other states, as it's too dangerous. Update can be called
+                    //only once per turn.
 
         advance(); //Handles moving the robot towards
-        //the next point on its myPath vector.
+                   //the next point on its myPath vector.
         compute(); //Works on constructing/improving myPath vector
     }
 
     public void onExit() {
+        
     }
 
     //Note bytecode-safe. Should be called near start of turn.
     private void advance() {
         if (myPath.size() == 0) {
+            if (goal.x != x0 || goal.y != y0) {
+                int n_preferred = deadReckonIndex(x0,y0,goal.x, goal.y);
+                Direction next = pointToDirec(directions[n_preferred]);
+                if (rc.canMove(next)) {
+                    try {
+                        if (rc.getDirection().equals(next)) {
+                            rc.moveForward();
+                            x0 += directions[n_preferred].x;
+                            y0 += directions[n_preferred].y;
+                        } else if (rc.getDirection().opposite().equals(next)) {
+                            rc.moveBackward();
+                            x0 -= directions[n_preferred].x;
+                            y0 -= directions[n_preferred].y;
+                        } else {
+                            rc.setDirection(next);
+                            currDirIndex = n_preferred;
+                        }
+                    } catch (Exception e) {}
+                }
+            }
             return;
         }
 
         Point tempGoal = myPath.get(0);
+        if (x0 == tempGoal.x && y0 == tempGoal.y) {
+            myPath.remove(0);
+            advance();
+            return;
+        }
+
         int preferred_direc_index = deadReckonIndex(x0, y0, tempGoal.x, tempGoal.y);
 
         if (currDirIndex != preferred_direc_index && rc.getRoundsUntilMovementIdle() == 0) {
-            System.out.println("Orienting.");
             try {
                 rc.setDirection(pointToDirec(directions[preferred_direc_index]));
                 currDirIndex = preferred_direc_index;
@@ -164,12 +193,11 @@ public class Move extends State {
         }
 
         if (readyToMove()) {
-            System.out.println("Moving.");
-            debug_printMyPath();
             try {
                 int xNext = x0 + directions[preferred_direc_index].x;
                 int yNext = y0 + directions[preferred_direc_index].y;
                 rc.moveForward();
+                System.out.println("Moving forward.");
                 x0 = xNext; //Technically, not yet. But true as soon as rc.yield() is called.
                 y0 = yNext; //The same here.
                 if (tempGoal.x == xNext &&
@@ -193,6 +221,67 @@ public class Move extends State {
             } catch (Exception e) {
             }
         }
+    }
+
+    private void step(int direcIndex) {
+        //Wait if necessary before rotating
+        if (rc.getRoundsUntilMovementIdle() != 0)
+            return;
+
+        //Rotate if necessary
+        if (!(direcIndex == currDirIndex || oppositeIndex(direcIndex) == currDirIndex)) {
+            try {
+                Direction next = pointToDirec(directions[direcIndex]);
+                rc.setDirection(next);
+                currDirIndex = direcIndex;
+            } catch (Exception e) {}
+            return;
+        }
+
+        //Wait if necessary before moving
+        if (!readyToMove())
+            return;
+
+        Direction next = rc.getDirection();
+
+        //Move forward if able
+        if (currDirIndex == direcIndex) {
+            next = pointToDirec(directions[direcIndex]);
+            if (rc.canMove(next))
+                try {
+                    rc.moveForward();
+                    x0 += directions[direcIndex].x;
+                    y0 += directions[direcIndex].y;
+                    return;
+                } catch (Exception e) {}
+        }
+
+        //Move backwards if able
+        if (oppositeIndex(direcIndex) == currDirIndex) {
+            next = pointToDirec(directions[direcIndex]).opposite();
+            if (rc.canMove(next))
+                try {
+                    rc.moveBackward();
+                    x0 -= directions[direcIndex].x;
+                    y0 -= directions[direcIndex].y;
+                    return;
+                } catch (Exception e) {}
+        }
+
+        //Something is in the way.
+        Robot interferer = null;
+        try {
+            if (flying)
+                interferer = rc.senseAirRobotAtLocation(rc.getLocation().add(next));
+            else
+                interferer = rc.senseGroundRobotAtLocation(rc.getLocation().add(next));
+        } catch (Exception e) {}
+        
+        if (interferer != null) {
+            //Broadcast a message instructing them to get out of my way.
+        }
+        else
+            debug_warn("Warning: Blocked passage, but no robot in the way. Probable error in map or expected robot location.");
     }
 
     private void compute() {
@@ -343,7 +432,6 @@ public class Move extends State {
     }
 
     private void updateAdvanceToWall() {
-        debug_warn("Advancing to wall.");
         int xCurr = x0;
         int yCurr = y0;
         //By experimentation, 400 bytecodes is a generous assumption about the
@@ -742,7 +830,6 @@ public class Move extends State {
             if (lastCertainWaypoint > myPath.size() - 3) {
                 pathfindingStage = FINISHED_STAGE;
                 currentStageInProgress = false;
-                debug_printMyPath();
                 return;
             }
             waypointToSkipTo = myPath.size() - 1;

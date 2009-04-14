@@ -137,6 +137,7 @@ public class DefaultRobot implements Runnable {
                         MapLocation current = rc.getLocation();
                         System.out.println("Arrived. " + (current.getX() + myMap.dx) + ", " + (current.getY() + myMap.dy));
                     }
+                    rc.yield();
                     State myState = (State)(new Move(myMap, rc, this).setGoal(goals[2]));
                     myState.onEnter();
                     while (true) {
@@ -149,7 +150,6 @@ public class DefaultRobot implements Runnable {
             } catch (Exception e) {
                 System.out.println("caught exception:");
                 e.printStackTrace();
-                myMap.debug_printMap();
             }
         }
     }
