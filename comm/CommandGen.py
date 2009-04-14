@@ -52,6 +52,25 @@ def main ():
     
     for f in args:
         processFile(open(f, "r"))
+        
+    types = [Boolean("bool"), Int("int"), MapLocation("ML"), Point("p")]
+     
+    arrays = [OneDArray(b) for b in types]
+    numInts = [c.numIntsToRepresent() for c in arrays]
+    print numInts
+    
+    
+    for array in arrays:
+        print array
+        
+        for line in array.toInt("array", "counter"):
+            print "\t" + line + "\n"
+        
+        #for line in array.fromInt("array", "0"):
+         #   print "\t" + line + "\n"
+    
+
+    
     
 def processFile(f):
     """
@@ -194,14 +213,20 @@ def writeToIntArray(f, classTitle, variables):
     f.write("\t\tarray[0] = LENGTH;\n");
     f.write("\t\tarray[1] = ID;\n")
     
-    counter = 2
+    counter = "2"
     for variable in variables:
         var = variable.implementation
         
-        ints = var.toInt()
+        ints = var.toInt("array", counter)
         for val in ints:
-            f.write("\t\tarray[" + str(counter) + "] = " + val + ";\n")
-            counter = counter + 1
+            f.write("\t\t" + val + "\n")
+        
+        try:
+            counter = str(int(counter) + int(var.numIntsToRepresent()))
+        except ValueError:
+            counter += " + " + var.numIntsToRepresent()
+            
+
     
     
     f.write("\t\treturn array;\n")
@@ -217,7 +242,7 @@ def writeFromIntArray(f, classTitle, variables):
     for variable in variables:
         var = variable.implementation
         
-        strings, counterIncrement = var.fromInt("array", counter)
+        strings, counterIncrement = var.fromInt("array", counter), var.numIntsToRepresent()
         for line in strings:
             f.write("\t\t" + line + "\n")
         
