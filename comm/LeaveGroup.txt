@@ -1,0 +1,3 @@
+LeaveGroup
+LEAVE_GROUP
+private int id;

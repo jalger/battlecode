@@ -1,0 +1,5 @@
+Fringe
+FRINGE
+private Point[] points;
+private boolean[] groundTraversable;
+private int[] heights;

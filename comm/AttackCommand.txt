@@ -1,0 +1,3 @@
+AttackCommand
+ATTACK
+private MapLocation location;
