@@ -12,6 +12,7 @@ public abstract class SubMessageBody implements Transferable<SubMessageBody>
         ATTACK(-1235098),
         MOVE_TO(1235125),
         GET_OUT_OF_WAY(12512444),
+        SHOVE(9206872),
         DEFEND(-155),
         CALCULATE_PATH(155514),
         GIVE_ENERGON(156166),
