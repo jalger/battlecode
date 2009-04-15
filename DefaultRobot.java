@@ -71,12 +71,6 @@ public class DefaultRobot implements Runnable {
         }
         myState.update();
         endTurn();*/
-
-                //Uncomment to suicide down to 1 robot at start
-                /* MapLocation[] others = rc.senseAlliedArchons();
-                if (others.length != 1)
-                    rc.suicide();
-                 * */
                  
 
 
@@ -84,7 +78,8 @@ public class DefaultRobot implements Runnable {
                 MapLocation towers[] = rc.senseAlliedTowers();
                 myMap = new Map(towers[0].getX(), towers[0].getY());
                 if (!rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]))
-                    rc.suicide();
+                    //if (!rc.getLocation().add(Direction.NORTH).equals(towers[0]))
+                        rc.suicide();
 
                 x = rc.getLocation().getX();
                 y = rc. getLocation().getY();
@@ -97,13 +92,6 @@ public class DefaultRobot implements Runnable {
                             updateMapSquare(loc);
                     }
                 }
-
-
-
-                MapLocation goal = new MapLocation(x - 23, y - 35);
-                //moveTo(goal);
-
-        boolean pathfound = false;
         while (true) {
             try {
                 /*** beginning of main loop ***/
@@ -119,31 +107,22 @@ public class DefaultRobot implements Runnable {
                     rc.yield();
                 }
 
-                if (Clock.getRoundNum() > 0 && !pathfound) {
-                    pathfound = true;
-                    Point[] goals = new Point[4];
-                    for (int i = 0; i < goals.length; i += 2) {
-                        goals[i] = new Point(47,47);
-                    }
-                    goals[1] = new Point(goals[0].x + 33,goals[0].y);
-                    goals[3] = goals[1];
-                    for (int i = 0; i < 2; i++) {
-                        goal = new MapLocation(goals[i].x - myMap.dx, goals[i].y - myMap.dy);
-                        boolean success = false;
-                        System.out.println("Departing for " + (goal.getX() + myMap.dx) + ", " + (goal.getY() + myMap.dy));
-                        while (!success) {
-                            success = headTowards(goal);
-                        }
-                        MapLocation current = rc.getLocation();
-                        System.out.println("Arrived. " + (current.getX() + myMap.dx) + ", " + (current.getY() + myMap.dy));
-                    }
-                    rc.yield();
-                    State myState = (State)(new Move(myMap, rc, this).setGoal(goals[2]));
-                    myState.onEnter();
-                    while (true) {
-                        myState.update();
-                        rc.yield();
-                    }
+                rc.yield();
+                State myState;
+                if (rc.getLocation().getX() != towers[0].getX()) {
+                    myState = (State) (new Move(myMap, rc, this).setGoal(new Point(x + myMap.dx + 33,y + myMap.dy + 0)));
+                } else {
+                    MapLocation[] allyLocs = rc.senseAlliedArchons();
+                    MapLocation allyLoc = allyLocs[0];
+                    if (rc.getLocation().equals(allyLoc))
+                        allyLoc = allyLocs[1];
+                    Robot ally = rc.senseGroundRobotAtLocation(allyLoc);
+                    myState = (State) (new Move(myMap, rc, this).setFollowing(ally, new Point(0,1)));
+                }
+                myState.onEnter();
+                while (true) {
+                    myState.update();
+                    endTurn();
                 }
 
             /*** end of main loop ***/
