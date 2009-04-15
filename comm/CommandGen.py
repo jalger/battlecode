@@ -2,37 +2,21 @@
 # Skeleton script modified from Noah Spurrier from 
 # http://code.activestate.com/recipes/528877/
 
-"""
-SYNOPSIS
-
-    TODO helloworld [-h,--help] [-v,--verbose] [--version]
-
-DESCRIPTION
-
-    TODO This describes how to use this script. This docstring
-    will be printed by the script if there is an error or
-    if the user requests help (-h or --help).
-
-EXAMPLES
-
-    TODO: Show some examples of how to use this script.
-
-EXIT STATUS
-
-    TODO: List exit codes
-
-AUTHOR
-
-    TODO: Name <name@example.org>
-
-LICENSE
-
-    This script is in the public domain, free from copyrights or restrictions.
-
-VERSION
-
-    $Id$
-"""
+# Given a list of input files, each of which must be in the format described
+# below, makes a Java file out of the input.  Used to quickly generate
+# classes we need for communication
+#
+# File format
+# Line 1: Class name, what the .java file will be called
+# Line 2: The name of the SubMessageBodyType enum within SubMessageBody.
+# We use this in order to keep all of the IDs for messages within one place
+# Line 3+: [private | public ] int | boolean | MapLocation | Point [ "[]" ]? identifier;
+#
+# In other words, lines 3 on accept a declaration of a single int, boolean,
+# MapLocation, Point, or a one dimensional array of each
+#
+# Author: Nicholas Dunn
+# Date:   April 14, 2009
 
 FILE_EXTENSION = ".java"
 ENUM_FILE = "SubMessageBody"
@@ -52,24 +36,6 @@ def main ():
     
     for f in args:
         processFile(open(f, "r"))
-        
-    types = [Boolean("bool"), Int("int"), MapLocation("ML"), Point("p")]
-     
-    arrays = [OneDArray(b) for b in types]
-    numInts = [c.numIntsToRepresent() for c in arrays]
-    print numInts
-    
-    
-    for array in arrays:
-        print array
-        
-        for line in array.toInt("array", "counter"):
-            print "\t" + line + "\n"
-        
-        #for line in array.fromInt("array", "0"):
-         #   print "\t" + line + "\n"
-    
-
     
     
 def processFile(f):
@@ -128,7 +94,6 @@ def writeDeclarations(f, title, enumID, declarations):
         f.write("\t" + str(declaration) + "\n")
         
     f.write("\tpublic static final int ID = " + ENUM_FILE + "." + ENUM_NAME + "." + enumID + ".getID();\n")    
-    f.write("\tpublic static final int LENGTH = " + str(calculateLength(declarations)) + ";\n")
     
     # Write the static parser declaration
     f.write("\tpublic static final " + title + " PARSER = new " + title + "(" + getDefaultArguments(declarations) + ");\n" )
@@ -194,21 +159,23 @@ def writeGetters(f, variables):
 
 def calculateLength(declarations):
     # minimum length of two
-    MIN_LENGTH = 2
+    MIN_LENGTH = "2"
     
-#    additional = sum([decl.implementation.numIntsToRepresent() for decl in declarations])
- #   return MIN_LENGTH + additional
-    return MIN_LENGTH
+    additional = "+".join([decl.implementation.numIntsToRepresent() for decl in declarations])
+    
+    return condense(MIN_LENGTH + "+" + additional)
+
 
 # TODO: Length is not constant in the presence of arrays.    
 def writeGetLength(f, declarations):
     f.write("\tpublic int getLength() {\n")
-    f.write("\t\treturn LENGTH;\n")
+    f.write("\t\treturn " + calculateLength(declarations) + ";\n")
     f.write("\t}\n")
 
     
 def writeToIntArray(f, classTitle, variables):
     f.write("\tpublic int[] toIntArray() {\n")
+    f.write("\t\tfinal int LENGTH = " + calculateLength(variables) + ";\n")
     f.write("\t\tint[] array = new int[LENGTH];\n");
     f.write("\t\tarray[0] = LENGTH;\n");
     f.write("\t\tarray[1] = ID;\n")
@@ -290,6 +257,7 @@ def replaceExtension(f, extension = FILE_EXTENSION):
     return newFileName
 
 
+# All this comes from http://code.activestate.com/recipes/528877/
 if __name__ == '__main__':
     try:
         start_time = time.time()

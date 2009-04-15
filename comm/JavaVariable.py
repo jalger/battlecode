@@ -9,6 +9,14 @@ BOOLEAN = "boolean"
 POINT = "Point"
 MAP_LOCATION = "MapLocation"
 
+INT_1D_ARRAY = INT + "[]"
+BOOLEAN_1D_ARRAY = BOOLEAN + "[]"
+POINT_1D_ARRAY = POINT + "[]"
+MAP_LOCATION_1D_ARRAY = MAP_LOCATION + "[]"
+
+LOOP_NAME_EXT = "tmp"
+
+
 PACKAGE = "teamJA_ND"
 POINT_LOC = PACKAGE + "." + POINT
 MAP_LOCATION_LOC = "battlecode.common.MapLocation";
@@ -19,7 +27,39 @@ def counterIncrement(counter, amount):
     except ValueError:
         newCounter = counter + " + " + amount
     return newCounter
-
+    
+    
+    
+def condense(string):
+    """
+    Given a String with int literals, attempts to consolidate all of the
+    added literals into a single added literal
+    """
+    
+    nums = string.split("+")
+    numString = ""
+    
+    intSum = 0
+    nonLiteralCount = 0
+    for num in nums:
+        try:
+            intSum += int(num)
+        except ValueError:
+            nonLiteralCount += 1
+            # Don't add the plus sign in front unless there are other values
+            if numString == "":
+                numString += num
+            else:
+                numString += "+" + num
+        pass
+    
+    if nonLiteralCount > 0:
+        numString += "+" + str(intSum)
+    else:
+        numString = str(intSum)
+        
+    return numString
+    
 
 
 class Variable:
@@ -49,6 +89,13 @@ class Variable:
               BOOLEAN: Boolean(self.name),
               POINT: Point(self.name),
               MAP_LOCATION: MapLocation(self.name),
+              # 1D arrays
+              INT_1D_ARRAY: OneDArray(Int(LOOP_NAME_EXT + self.name), self.name),
+              BOOLEAN_1D_ARRAY: OneDArray(Boolean(LOOP_NAME_EXT + self.name), self.name),
+              POINT_1D_ARRAY: OneDArray(Point(LOOP_NAME_EXT + self.name), self.name),
+              MAP_LOCATION_1D_ARRAY: OneDArray(MapLocation(LOOP_NAME_EXT + self.name), self.name)
+              
+              
         }[self.type]
         
         
@@ -97,11 +144,15 @@ class Int(VariableImplementation):
         return "1"
         
     def fromInt(self, ints, offset):
-        return ["int " + self.name + " = " + ints + "[" + str(offset) + "];"]
+        off = condense(offset)
+        
+        return ["int " + self.name + " = " + ints + "[" + off + "];"]
 
         
     def toInt(self, ints, offset):
-        return [ints + "[" + offset + "] = " + self.name + ";"]
+        off = condense(offset)
+        
+        return [ints + "[" + off + "] = " + self.name + ";"]
         
 class Point(VariableImplementation):
     def type(self):
@@ -118,11 +169,10 @@ class Point(VariableImplementation):
         return "2"
 
     def fromInt(self, ints, offset):
-        try:
-            counterPlusOne = str(int(offset) + 1)
-        except ValueError:
-            counterPlusOne = offset + " + 1"
-            print offset, counterPlusOne
+        
+        off = condense(offset)
+        
+        counterPlusOne = condense(counterIncrement(off, "1"))
             
         return ["Point " + self.name + " = new Point(" + ints + "[" + offset + "], " + ints + "[" + counterPlusOne + "]);"]
         
@@ -140,10 +190,12 @@ class Boolean(VariableImplementation) :
         return "1"
 
     def fromInt(self, ints, offset):
-        return ["boolean " + self.name + " = (" + ints + "[" + str(offset) + "] == 1);"]
+        off = condense(offset)
+        
+        return ["boolean " + self.name + " = (" + ints + "[" + off + "] == 1);"]
         
     def toInt(self, ints, offset):
-        return [ints + "[" + offset + "] = " + self.name + " ? 1 : 0;"]
+        return [ints + "[" + condense(offset) + "] = " + self.name + " ? 1 : 0;"]
         
 class MapLocation(VariableImplementation) :
     def type(self):
@@ -160,14 +212,13 @@ class MapLocation(VariableImplementation) :
         return "2"
 
     def fromInt(self, ints, offset):
-        try:
-            counterPlusOne = str(int(offset) + 1)
-        except ValueError:
-            counterPlusOne = offset + " + 1"
-        return ["MapLocation " + self.name + " = new MapLocation(" + ints + "[" + str(offset) + "], " + ints + "[" + counterPlusOne + "]);"]
+        off = condense(offset)
+        counterPlusOne = condense(counterIncrement(off, "1"))
+        return ["MapLocation " + self.name + " = new MapLocation(" + ints + "[" + off + "], " + ints + "[" + counterPlusOne + "]);"]
 
     def toInt(self, ints, offset):
-        return [ints + "[" + offset + "] = " + self.name + ".getX();", ints + "[" + counterIncrement(offset, "1") + "] = " + self.name + ".getY();"]
+        
+        return [ints + "[" + condense(offset) + "] = " + self.name + ".getX();", ints + "[" + condense(counterIncrement(offset, "1")) + "] = " + self.name + ".getY();"]
 
 
 class Array(VariableImplementation):
@@ -176,21 +227,38 @@ class Array(VariableImplementation):
 
 class OneDArray(Array):
     
-    def __init__(self, varImpl):
-        self.variable = varImpl      
+    def __init__(self, varImpl, name = "arrayType"):
+        self.variable = varImpl     
+        self.name = name 
 
     def numIntsToRepresent(self):
-        return "1 + (" + self.variable.numIntsToRepresent() + " * " + self.variable.name + ".length)"
+        return "1 + (" + self.variable.numIntsToRepresent() + " * " + self.name + ".length)"
+
+    # All for loops will start the same
+    def forLoopStart(self):
+        return "for (int i = 0; i < " + self.name + ".length; i++) {"
+        
+    def innerIndex(self, initialOffset, counterVar):
+        # one extra space for the storage of size of array
+        return condense(initialOffset + " + (" + self.variable.numIntsToRepresent() + " * " + counterVar + ") + 1")
+
+
+    def innerDeclaration(self):
+        return self.variable.type() + " " + self.variable.name + " = " + self.name + "[i];"
+
+
+
 
     def toInt(self, ints, offset):
+        off = condense(offset)
+        
+        innerConversion = self.variable.toInt(ints, self.innerIndex(off, "i"))
+
+        # The first element is an int telling how big the array is
+        loop = [ints + "[" + off + "] = " + self.name + ".length;",
+        self.forLoopStart(), "\t" + self.innerDeclaration()]
         
         
-        innerConversion = self.variable.toInt(ints, offset + "+ i + 1")
-        sizeOfArray = self.variable.numIntsToRepresent() + " * " + self.variable.name + ".length"
-        increment = self.variable.numIntsToRepresent()
-        
-        loop = [ints + "[" + offset + "] = " + self.variable.name + ".length;",
-        "for (int i = 0; i < " + sizeOfArray + "; i+= " + increment + ") {"]
         for line in innerConversion:
             loop.append("\t" + line)
         loop.append("}")
@@ -198,6 +266,23 @@ class OneDArray(Array):
         return loop;
         
     def fromInt(self, ints, offset):
+        off = condense(offset)
+        
+        size = "int " + self.name + "size = " + ints + "[" + off + "];";
+        typeOfVar = self.variable.type()
+        declaration = typeOfVar + "[] " + self.name + " = new " + typeOfVar + "[" + self.name + "size];"
+        
+        loop = self.forLoopStart()
+        loopBody = self.variable.fromInt(ints, self.innerIndex(off, "i"))
+        assignment = self.name + "[i] = " + self.variable.name + ";"
+        
+        a = [size, declaration, loop]
+        for i in loopBody:
+            a.append("\t" + i)
+        a.append("\t" + assignment)
+        a.append("}")
+        return a
+        
         pass
 
 
