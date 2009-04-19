@@ -1,35 +1,51 @@
 package teamJA_ND.comm;
 
-public class MoveToCommand extends SubMessageBody {
-    
-    private final int x;
-    private final int y;
-    private final boolean absolute;
-    
-    private static final int LENGTH = SubMessageBody.MIN_REQUIRED_FIELDS + 3;
-    private static final int ID = SubMessageBody.SubMessageBodyType.MOVE_TO.getID();
-    
-    public static final MoveToCommand PARSER = new MoveToCommand(0,0,false);
-    
-    public MoveToCommand(int x, int y, boolean absolute) {
-        this.x = x;
-        this.y = y;
-        this.absolute = absolute;
-    }
-    
-    public int getID() { return ID; } 
 
-    public int getLength() { return LENGTH; }
 
-    public SubMessageBody fromIntArray(int[] array, int offset) {
-        int x = array[offset + SubMessageBody.MIN_REQUIRED_FIELDS];
-        int y = array[offset + SubMessageBody.MIN_REQUIRED_FIELDS + 1];
-        boolean absolute =  array[offset + SubMessageBody.MIN_REQUIRED_FIELDS + 2] == 1;
-        return new MoveToCommand(x, y, absolute);
-    }
 
-    public int[] toIntArray() {
-        return new int[] { LENGTH, ID, x, y, absolute ? 1 : 0};
-    }
-    
+public class MoveToCommand extends SubMessageBody{
+	private int x;
+	private int y;
+	private boolean absolute;
+	public static final int ID = SubMessageBody.SubMessageBodyType.MOVE_TO.getID();
+	public static final MoveToCommand PARSER = new MoveToCommand(0, 0, false);
+
+
+	public MoveToCommand (int x, int y, boolean absolute) {
+		this.x = x;
+		this.y = y;
+		this.absolute = absolute;
+	}
+
+	public int getLength() {
+		return 5;
+	}
+	public int getID() { return ID; }
+
+	public int[] toIntArray() {
+		final int LENGTH = getLength();
+		int[] array = new int[LENGTH];
+		array[0] = LENGTH;
+		array[1] = ID;
+		array[2] = x;
+		array[3] = y;
+		array[4] = absolute ? 1 : 0;
+		return array;
+	}
+	public MoveToCommand fromIntArray(int[] array, int offset) {
+		int counter = 2 + offset;
+		int x = array[counter+0];
+		int y = array[counter +1];
+		boolean absolute = (array[counter +2] == 1);
+		return new MoveToCommand(x, y, absolute);
+	}
+	public int getX() {
+		return x;
+	}
+	public int getY() {
+		return y;
+	}
+	public boolean getAbsolute() {
+		return absolute;
+	}
 }

@@ -19,7 +19,7 @@ public class Shove extends SubMessageBody{
 	public int getID() { return ID; }
 
 	public int[] toIntArray() {
-		final int LENGTH = 3;
+		final int LENGTH = getLength();
 		int[] array = new int[LENGTH];
 		array[0] = LENGTH;
 		array[1] = ID;

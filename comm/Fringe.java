@@ -1,6 +1,7 @@
 package teamJA_ND.comm;
 
 
+import teamJA_ND.Point;
 
 
 public class Fringe extends SubMessageBody{
@@ -23,25 +24,28 @@ public class Fringe extends SubMessageBody{
 	public int getID() { return ID; }
 
 	public int[] toIntArray() {
-		final int LENGTH =  (2 * points.length)+ (1 * groundTraversable.length)+ (1 * heights.length)+5;
+		final int LENGTH = getLength();
 		int[] array = new int[LENGTH];
 		array[0] = LENGTH;
 		array[1] = ID;
 		array[2] = points.length;
 		for (int i = 0; i < points.length; i++) {
+			int startIndex =  (2 * i) +3;
 			Point tmppoints = points[i];
-			array[ (2 * i) +3] = tmppoints.x;
-			array[ (2 * i) +3 + 1] = tmppoints.y;
+			array[startIndex] = tmppoints.x;
+			array[startIndex + 1] = tmppoints.y;
 		}
 		array[ (2 * points.length)+3] = groundTraversable.length;
 		for (int i = 0; i < groundTraversable.length; i++) {
+			int startIndex =  (2 * points.length)+ (1 * i) +4;
 			boolean tmpgroundTraversable = groundTraversable[i];
-			array[ (2 * points.length)+ (1 * i) +4] = tmpgroundTraversable ? 1 : 0;
+			array[startIndex+0] = tmpgroundTraversable ? 1 : 0;
 		}
 		array[ (2 * points.length) + (1 * groundTraversable.length)+4] = heights.length;
 		for (int i = 0; i < heights.length; i++) {
+			int startIndex =  (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +5;
 			int tmpheights = heights[i];
-			array[ (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +5] = tmpheights;
+			array[startIndex+0] = tmpheights;
 		}
 		return array;
 	}
@@ -50,19 +54,22 @@ public class Fringe extends SubMessageBody{
 		int pointssize = array[counter+0];
 		Point[] points = new Point[pointssize];
 		for (int i = 0; i < points.length; i++) {
-			Point tmppoints = new Point(array[counter+ (2 * i) +1], array[counter+ (2 * i) +2]);
+			int startIndex = counter+ (2 * i) +1;
+			Point tmppoints = new Point(array[startIndex], array[startIndex+1]);
 			points[i] = tmppoints;
 		}
 		int groundTraversablesize = array[counter + (2 * points.length)+1];
 		boolean[] groundTraversable = new boolean[groundTraversablesize];
 		for (int i = 0; i < groundTraversable.length; i++) {
-			boolean tmpgroundTraversable = (array[counter + (2 * points.length)+ (1 * i) +2] == 1);
+			int startIndex = counter + (2 * points.length)+ (1 * i) +2;
+			boolean tmpgroundTraversable = (array[startIndex+0] == 1);
 			groundTraversable[i] = tmpgroundTraversable;
 		}
 		int heightssize = array[counter + (2 * points.length) + (1 * groundTraversable.length)+2];
 		int[] heights = new int[heightssize];
 		for (int i = 0; i < heights.length; i++) {
-			int tmpheights = array[counter + (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +3];
+			int startIndex = counter + (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +3;
+			int tmpheights = array[startIndex+0];
 			heights[i] = tmpheights;
 		}
 		return new Fringe(points, groundTraversable, heights);

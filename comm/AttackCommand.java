@@ -20,7 +20,7 @@ public class AttackCommand extends SubMessageBody{
 	public int getID() { return ID; }
 
 	public int[] toIntArray() {
-		final int LENGTH = 4;
+		final int LENGTH = getLength();
 		int[] array = new int[LENGTH];
 		array[0] = LENGTH;
 		array[1] = ID;

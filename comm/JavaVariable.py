@@ -14,6 +14,11 @@ BOOLEAN_1D_ARRAY = BOOLEAN + "[]"
 POINT_1D_ARRAY = POINT + "[]"
 MAP_LOCATION_1D_ARRAY = MAP_LOCATION + "[]"
 
+INT_2D_ARRAY = INT + "[][]"
+BOOLEAN_2D_ARRAY = BOOLEAN + "[][]"
+POINT_2D_ARRAY = POINT + "[][]"
+MAP_LOCATION_2D_ARRAY = MAP_LOCATION + "[][]"
+
 LOOP_NAME_EXT = "tmp"
 
 
@@ -93,8 +98,14 @@ class Variable:
               INT_1D_ARRAY: OneDArray(Int(LOOP_NAME_EXT + self.name), self.name),
               BOOLEAN_1D_ARRAY: OneDArray(Boolean(LOOP_NAME_EXT + self.name), self.name),
               POINT_1D_ARRAY: OneDArray(Point(LOOP_NAME_EXT + self.name), self.name),
-              MAP_LOCATION_1D_ARRAY: OneDArray(MapLocation(LOOP_NAME_EXT + self.name), self.name)
+              MAP_LOCATION_1D_ARRAY: OneDArray(MapLocation(LOOP_NAME_EXT + self.name), self.name),
               
+              #2D arrays
+              INT_2D_ARRAY: TwoDIntArray(Int(LOOP_NAME_EXT + self.name), self.name),
+              BOOLEAN_2D_ARRAY: TwoDBooleanArray(Boolean(LOOP_NAME_EXT + self.name), self.name),
+              POINT_2D_ARRAY: TwoDPointArray(Point(LOOP_NAME_EXT + self.name), self.name),
+              MAP_LOCATION_2D_ARRAY: TwoDMapLocationArray(MapLocation(LOOP_NAME_EXT + self.name), self.name)
+          
               
         }[self.type]
         
@@ -224,6 +235,9 @@ class MapLocation(VariableImplementation) :
 class Array(VariableImplementation):
     def default(self):
         return "null"
+        
+    def neededImport(self):
+        return self.variable.neededImport()
 
 class OneDArray(Array):
     
@@ -247,19 +261,19 @@ class OneDArray(Array):
         return self.variable.type() + " " + self.variable.name + " = " + self.name + "[i];"
 
 
-
-
     def toInt(self, ints, offset):
         off = condense(offset)
         
+        index = "\tint startIndex = " +self.innerIndex(off, "i") + ";"
+        loopBody = self.variable.toInt(ints, "startIndex")
         innerConversion = self.variable.toInt(ints, self.innerIndex(off, "i"))
 
         # The first element is an int telling how big the array is
         loop = [ints + "[" + off + "] = " + self.name + ".length;",
-        self.forLoopStart(), "\t" + self.innerDeclaration()]
+        self.forLoopStart(), index, "\t" + self.innerDeclaration()]
         
         
-        for line in innerConversion:
+        for line in loopBody:
             loop.append("\t" + line)
         loop.append("}")
         
@@ -273,23 +287,131 @@ class OneDArray(Array):
         declaration = typeOfVar + "[] " + self.name + " = new " + typeOfVar + "[" + self.name + "size];"
         
         loop = self.forLoopStart()
-        loopBody = self.variable.fromInt(ints, self.innerIndex(off, "i"))
+        index = "\tint startIndex = " +self.innerIndex(off, "i") + ";"
+        loopBody = self.variable.fromInt(ints, "startIndex")
         assignment = self.name + "[i] = " + self.variable.name + ";"
         
-        a = [size, declaration, loop]
+        a = [size, declaration, loop, index]
         for i in loopBody:
             a.append("\t" + i)
         a.append("\t" + assignment)
         a.append("}")
         return a
         
-        pass
 
 
 class TwoDArray(Array):
-    
-    def __init__(self, varImpl):
-        self.variable = varImpl      
-    
+    """ 
+    A two-dimensional array in our case must be rectangular, not jagged.  In
+    other words, for all i, array[i].length == array[i+1].length
+    """
 
+    
+    def __init__(self, varImpl, name = "arrayType"):
+        self.variable = varImpl     
+        self.name = name 
 
+    def numIntsToRepresent(self):
+        numInts = self.variable.numIntsToRepresent()
+        return "2 + (" + numInts + " * (" + self.numRows() + "* " + self.numCols() + "))"
+    
+    
+    def numRows(self):
+        return self.name + ".length"
+        
+    def numCols(self):
+        return self.name + "[0].length"
+    
+    # Loop over the rows
+    def outerLoopStart(self):
+        return "for (int i = 0; i < " + self.numRows() + "; i++)"
+    
+    # Loop over the columns
+    def innerLoopStart(self):
+        return "for (int j = 0; j < " + self.numCols() + "; j++)"
+    
+    
+    def innerToLoop(self, array, offset):
+        pass
+    
+    def convertToOneDIndex(self, i, j, numRows, numCols, offset):
+        numIntsToRepr = self.variable.numIntsToRepresent()
+        return condense("(" + i + " * " + numCols + "* " + numIntsToRepr + ") + (" + numIntsToRepr + " * " + j + ") + " + offset)
+    
+    # Position 0 = numRows, 1 = numCols, all the rest 
+    def toInt(self, ints, offset):
+        off = condense(offset)
+
+        numRowsName = self.name + "numRows"
+        numColsName = self.name + "numCols"
+        
+        numRows = "int " + numRowsName + " = " + self.numRows() + ";"
+        numCols = "int " + numColsName + " = " + self.numCols() + ";"
+        
+        rowDecl = ints + "[" + off + "] = " + numRowsName + ";"
+        colDecl = ints + "[" + condense(off + " + 1") + "] = " + numColsName + ";"
+        outer = self.outerLoopStart() + "{"
+        inner = "\t" + self.innerLoopStart() + "{"
+        index = "\t\tint startIndex = " + self.convertToOneDIndex("i", "j", numRowsName, numColsName, offset + " + 2") + ";"
+
+        
+        loop = [numRows, numCols, rowDecl, colDecl, outer, inner, index]
+        
+        
+        body = self.innerToLoop(ints, condense("startIndex"))
+        for line in body:
+            loop.append("\t\t" + line)
+        
+        loop.append("\t}")
+        loop.append("}")
+        
+        return loop
+        
+    def fromInt(self, ints, offset):
+        off = condense(offset)
+        
+        numRowsName = self.name + "numRows"
+        numColsName = self.name + "numCols"
+        
+        
+        numRows = "int " + numRowsName + " = " + ints + "[" + off + "];";
+        numCols = "int " + numColsName + " = " + ints + "[" + condense(off + "+ 1") + "];";
+        
+        typeOfVar = self.variable.type()
+        declaration = typeOfVar + "[][] " + self.name + " = " + \
+        "new " + typeOfVar + "[" + self.name + "numRows][" + self.name + "numCols];"
+        
+        outer = self.outerLoopStart() + "{"
+        inner = "\t" + self.innerLoopStart() + "{"
+        index = "\t\tint startIndex = " +self.convertToOneDIndex("i", "j", self.name + "numRows", self.name + "numCols", offset + " + 2") + ";"
+        loopBody = self.variable.fromInt(ints, "startIndex")
+        assignment = "\t\t" + self.name + "[i][j] = " + self.variable.name + ";"
+        
+        
+        loop = [numRows, numCols, declaration, outer, inner, index]
+        
+        for line in loopBody:
+            loop.append("\t\t" + line)
+        
+        loop.append(assignment)
+        loop.append("\t}")
+        loop.append("}")
+        return loop
+
+class TwoDIntArray(TwoDArray):
+    def innerToLoop(self, array, offset):
+        return [array + "[" + offset + "] = " + self.name + "[i][j];"]
+        
+        
+        
+class TwoDBooleanArray(TwoDArray):
+    def innerToLoop(self, array, offset):
+        return [array + "[" + offset + "] = " + self.name + "[i][j] ? 1 : 0;"]
+        
+class TwoDPointArray(TwoDArray):
+    def innerToLoop(self, array, offset):
+        return [array + "[" + offset + "] = " + self.name + "[i][j].x;", array + "[" + condense(offset + " + 1") + "] = " + self.name + "[i][j].y;"]
+        
+class TwoDMapLocationArray(TwoDArray):
+    def innerToLoop(self, array, offset):
+        return [array + "[" + offset + "] = " + self.name + "[i][j].getX();", array + "[" + condense(offset + " + 1") + "] = " + self.name + "[i][j].getY();"]

@@ -36,7 +36,7 @@ def main ():
     
     for f in args:
         processFile(open(f, "r"))
-    
+     
     
 def processFile(f):
     """
@@ -81,6 +81,7 @@ def writeHeader(f, title, variables, packageName = "teamJA_ND.comm"):
     f.write("\n\n")
     #unique imports we need
     neededImports = list(set([ var.implementation.neededImport() for var in variables]))
+    
     for neededImport in neededImports:
         if (neededImport != None):
             f.write("import " + neededImport + ";\n")
@@ -175,7 +176,7 @@ def writeGetLength(f, declarations):
     
 def writeToIntArray(f, classTitle, variables):
     f.write("\tpublic int[] toIntArray() {\n")
-    f.write("\t\tfinal int LENGTH = " + calculateLength(variables) + ";\n")
+    f.write("\t\tfinal int LENGTH = getLength();\n");
     f.write("\t\tint[] array = new int[LENGTH];\n");
     f.write("\t\tarray[0] = LENGTH;\n");
     f.write("\t\tarray[1] = ID;\n")
