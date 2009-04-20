@@ -1,0 +1,2 @@
+SelfTroopStrengthInfo
+SELF_TROOP_STRENGTH

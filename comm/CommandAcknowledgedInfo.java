@@ -3,14 +3,14 @@ package teamJA_ND.comm;
 
 
 
-public class CommandAcknowledged extends SubMessageBody{
+public class CommandAcknowledgedInfo extends SubMessageBody{
 	private int commandingRobotID;
 	private int commandID;
 	public static final int ID = SubMessageBody.SubMessageBodyType.COMMAND_ACKNOWLEDGED.getID();
-	public static final CommandAcknowledged PARSER = new CommandAcknowledged(0, 0);
+	public static final CommandAcknowledgedInfo PARSER = new CommandAcknowledgedInfo(0, 0);
 
 
-	public CommandAcknowledged (int commandingRobotID, int commandID) {
+	public CommandAcknowledgedInfo (int commandingRobotID, int commandID) {
 		this.commandingRobotID = commandingRobotID;
 		this.commandID = commandID;
 	}
@@ -29,11 +29,11 @@ public class CommandAcknowledged extends SubMessageBody{
 		array[3] = commandID;
 		return array;
 	}
-	public CommandAcknowledged fromIntArray(int[] array, int offset) {
+	public CommandAcknowledgedInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
 		int commandingRobotID = array[counter+0];
 		int commandID = array[counter +1];
-		return new CommandAcknowledged(commandingRobotID, commandID);
+		return new CommandAcknowledgedInfo(commandingRobotID, commandID);
 	}
 	public int getCommandingRobotID() {
 		return commandingRobotID;

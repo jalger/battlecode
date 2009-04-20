@@ -4,15 +4,15 @@ package teamJA_ND.comm;
 import battlecode.common.MapLocation;
 
 
-public class GiveEnergon extends SubMessageBody{
+public class GiveEnergonCommand extends SubMessageBody{
 	private int robotID;
 	private int requestedAmount;
 	private MapLocation location;
 	public static final int ID = SubMessageBody.SubMessageBodyType.GIVE_ENERGON.getID();
-	public static final GiveEnergon PARSER = new GiveEnergon(0, 0, null);
+	public static final GiveEnergonCommand PARSER = new GiveEnergonCommand(0, 0, null);
 
 
-	public GiveEnergon (int robotID, int requestedAmount, MapLocation location) {
+	public GiveEnergonCommand (int robotID, int requestedAmount, MapLocation location) {
 		this.robotID = robotID;
 		this.requestedAmount = requestedAmount;
 		this.location = location;
@@ -34,12 +34,12 @@ public class GiveEnergon extends SubMessageBody{
 		array[5] = location.getY();
 		return array;
 	}
-	public GiveEnergon fromIntArray(int[] array, int offset) {
+	public GiveEnergonCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
 		int robotID = array[counter+0];
 		int requestedAmount = array[counter +1];
 		MapLocation location = new MapLocation(array[counter +2], array[counter +3]);
-		return new GiveEnergon(robotID, requestedAmount, location);
+		return new GiveEnergonCommand(robotID, requestedAmount, location);
 	}
 	public int getRobotID() {
 		return robotID;

@@ -1,4 +1,4 @@
-CommandCompleted
+CommandCompletedInfo
 COMMAND_COMPLETED
 private int commandingRobotID;
 private int commandID;

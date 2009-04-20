@@ -1,4 +1,4 @@
-Fringe
+FringeInfo
 FRINGE
 private Point[] points;
 private boolean[] groundTraversable;

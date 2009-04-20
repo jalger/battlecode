@@ -209,10 +209,18 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
 
     /**
     * If a message is time limited, returns the
-    * latest
+    * latest round which this information should be acted upon
     */
     public int getLatestRoundRelevant() {
         return latestRoundRelevant;
+    }
+
+    /**
+    * @return the number of ints needed to represent the size of the 
+    * accompanying messagebody
+    **/
+    public final int getBodySize() {
+        return bodySize;
     }
 
 
@@ -244,10 +252,6 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     public int getRecipients() {
         return recipients;
     }
-
-
-
-    
     
     /**
     * Given a <code>KnowledgeBase</code> representing what a given robot knows 

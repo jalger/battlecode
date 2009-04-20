@@ -32,21 +32,8 @@ public class SubMessage implements Transferable<SubMessage> {
 
     public static SubMessage parse(int[] ints, int offset) {
         SubMessageHeader header = SubMessageHeader.PARSER.fromIntArray(ints, offset);
-        
-        SubMessageBody body = null;
-        
         int newOffset = offset + header.getLength();
-        switch (ints[newOffset]) {
-            case Command.IDENTIFIER:
-                //body = Command.PARSER.fromIntArray(ints, newOffset);
-                break;
-            case Information.IDENTIFIER:
-                //body = Information.PARSER.fromIntArray(ints, newOffset);
-                break;
-            default:
-                Assert.Assert(false, "Error, unrecognized SubMessageBody id: " 
-                            + ints[newOffset]);
-        }
+        SubMessageBody body = SubMessageBody.parse(ints, newOffset);
         return new SubMessage(header, body);
     }
     

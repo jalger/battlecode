@@ -1,4 +1,4 @@
-GiveEnergon
+GiveEnergonCommand
 GIVE_ENERGON
 private int robotID;
 private int requestedAmount;

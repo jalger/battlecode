@@ -1,4 +1,4 @@
-MentalState 
+MentalStateInfo 
 MENTAL_STATE
 private int robotID;
 private Point points;

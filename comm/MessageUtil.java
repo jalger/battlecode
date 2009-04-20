@@ -66,62 +66,55 @@ public class MessageUtil {
 
 
     /**
-    * @return a list of SubMessageBody objects, each of which contains 
+    * @return a list of SubMessage objects, each of which contains 
     * information about what action to take, or general information.
     **/
-    public List<SubMessageBody> getRelevantSubMessages(Message m, KnowledgeBase kb) {
+    public List<SubMessage> getRelevantSubMessages(Message m, KnowledgeBase kb) {
+
 
         // if Message is from our team
         if (fromOurTeam(m)) {
-    
+            System.out.println("The message " + m + "is from our team.");
+            
             // If it's been tampered with, ignore it
             if (!isLegitimate(m)) {
+                System.out.println("Message " + m + " has been tampered with");
                 return null;
             }
             
             // Else it's legitimate.
             else {
-                /*
+                // We will go through each header and determine if the 
+                // corresponding message pertains to us.  Only then do we need
+                // to bother with parsing the message.
+                
+                // Parse all of the message headers.
                 List <SubMessageHeader> headers = unpackHeaders(m);
+                
+                int start = NUM_HEADER_FIELDS;
+                List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
+                List <SubMessage> submessages = new LinkedList<SubMessage>();
+                
                 for (SubMessageHeader h : headers) {
-                    List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
                     if (h.pertainsToRobot(kb)) {
-                        SubMessageBody b = SubMessageBody.parse()
                         // Parse the body that corresponds with the header
-                        bodies.add();
+                        SubMessageBody b = SubMessageBody.parse(m.ints, start);
+                        bodies.add(b);
+                        
+                        submessages.add(new SubMessage(h, b));
                     }
-                    
-                    if (h.shouldBeRebroadcast()) {
+                    /* Right now we are not rebroadcasting for simplicity.
+                    if (h.shouldRebroadcast()) {
                         // Make sure that the resulting int stuff ends up there
-                    }
-                }*/
-                // For each submessageheader, determine if it pertains to me.
-                    // If so, parse out the corresponding body.
+                    }*/
                     
-                // 
+                    // We're done looking at this SubMessage; skip enough space
+                    // to reach the next one.
+                    start += h.getLength() + h.getBodySize();
+                }
                 
+                return submessages;
                 
-                /*
-                // Parse message into its submessages
-                List<SubMessage> messages = unpack(m);
-
-                // For each submessage
-                for (SubMessage s : messages) {
-                    // Determine if it pertains to me, and act on it if so
-                    if (pertainsToMe(s)) {
-                        System.out.println(s + " pertains to me.");
-                    }
-
-                    // If should rebroadcast
-                    if (shouldRebroadcast(s)) {
-                        // rebroadcast, changing the header information to match
-                        // current state of game and robot information
-                        
-                        System.out.println("I should redbroadcast" + s);
-                        
-                    } // shouldRedbroadcast
-                } // for loop
-                */
             } // legitimate
         } // from our team
 
@@ -161,12 +154,33 @@ public class MessageUtil {
 
         return subMessages;
     }
+    
+    public static List <SubMessageHeader> unpackHeaders(Message m) {
+        int[] encodedMessages = m.ints;
+        List<SubMessageHeader> subMessageHeaders = 
+            new LinkedList<SubMessageHeader>();
+        
+        // The first NUM_HEADER_FIELDS of int field have nothing to do
+        // with the submessages contained inside; ignore them
+
+        int start = NUM_HEADER_FIELDS;
+        // We keep track of where the next submessage starts; if it is equal
+        // to or greater than the length of the int array then we are done
+        while (start < m.ints.length) {
+            SubMessageHeader header = SubMessageHeader.PARSER.fromIntArray(encodedMessages, start);
+            start += header.getLength() + header.getBodySize();
+            subMessageHeaders.add(header);
+        }
+
+        return subMessageHeaders;
+    }
 
 
     public static Message pack(List<SubMessage> messages, 
                                MapLocation currentSquare,
                                int robotID,
                                int robotMessageID) {
+                               
         // Create a header and encode the location of sending robot
         int[] header = createHeader(robotID, robotMessageID);
         MapLocation[] locations = new MapLocation[] { currentSquare };

@@ -3,13 +3,13 @@ package teamJA_ND.comm;
 
 
 
-public class Shove extends SubMessageBody{
+public class ShoveCommand extends SubMessageBody{
 	private int robotID;
 	public static final int ID = SubMessageBody.SubMessageBodyType.SHOVE.getID();
-	public static final Shove PARSER = new Shove(0);
+	public static final ShoveCommand PARSER = new ShoveCommand(0);
 
 
-	public Shove (int robotID) {
+	public ShoveCommand (int robotID) {
 		this.robotID = robotID;
 	}
 
@@ -26,10 +26,10 @@ public class Shove extends SubMessageBody{
 		array[2] = robotID;
 		return array;
 	}
-	public Shove fromIntArray(int[] array, int offset) {
+	public ShoveCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
 		int robotID = array[counter+0];
-		return new Shove(robotID);
+		return new ShoveCommand(robotID);
 	}
 	public int getRobotID() {
 		return robotID;

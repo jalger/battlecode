@@ -1,0 +1,2 @@
+EnemyTroopStrengthInfo
+ENEMY_TROOP_STRENGTH
