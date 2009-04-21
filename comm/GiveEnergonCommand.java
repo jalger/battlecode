@@ -23,16 +23,13 @@ public class GiveEnergonCommand extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = robotID;
-		array[3] = requestedAmount;
-		array[4] = location.getX();
-		array[5] = location.getY();
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = robotID;
+		array[offset +3] = requestedAmount;
+		array[offset +4] = location.getX();
+		array[offset +5] = location.getY();
 	}
 	public GiveEnergonCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

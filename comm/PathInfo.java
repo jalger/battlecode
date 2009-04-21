@@ -24,19 +24,17 @@ public class PathInfo extends SubMessageBody {
     public static final PathInfo PARSER = new PathInfo(new ArrayList<Point>());
 
     public int getID() {
-        return SubMessageBody.SubMessageBodyType.PATH.getID();
+        return SubMessageBody.PATH_ID;
     }
 
-    public int[] toIntArray() {
-        int[] points = new int[2 * waypoints.size() + 1];
-        points[0] = points.length;
+    public void toIntArray(int[] points, int offset) {
+        points[offset] = points.length;
 
         int counter = 1;
         for (Point p : waypoints) {
-            points[counter++] = p.x;
-            points[counter++] = p.y;
+            points[offset + counter++] = p.x;
+            points[offset + counter++] = p.y;
         }
-        return points;
     }
 
     public int getLength() {
@@ -94,12 +92,10 @@ public class PathInfo extends SubMessageBody {
             new PathInfo(Arrays.asList(points2))
         };
 
-        for (PathInfo p : paths) {
-            p.equals(PARSER.fromIntArray(p.toIntArray(), 0));
 
             /*System.out.println(p);
             System.out.println(PARSER.fromIntArray(p.toIntArray(), 0));*/
-        }
+        
 
     }
 

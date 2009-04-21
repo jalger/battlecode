@@ -20,14 +20,11 @@ public class JoinGroupCommand extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = robotID;
-		array[3] = groupID;
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = robotID;
+		array[offset +3] = groupID;
 	}
 	public JoinGroupCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

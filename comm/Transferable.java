@@ -10,7 +10,7 @@ public interface Transferable<T> {
     /**
     * Every transferable object must be able to be encoded in an int array
     */
-    public int[] toIntArray();
+    public void toIntArray(int[] array, int offset);
     
     /**
     * Every transferable object must be able to be decoded from an int array,
@@ -30,5 +30,5 @@ public interface Transferable<T> {
     * Each transferable object must implement a unique ID that identifies it
     * so that we can ensure the correct parsers are called
     */
-        //public int getUniqueID();
+    //public int getUniqueID();
 }

@@ -56,7 +56,7 @@ public abstract class SubMessageBody implements Transferable<SubMessageBody>
     * Every subclass must be able to be converted into an array of ints for
     * storage within a message
     */
-    public abstract int[] toIntArray();
+    public abstract void toIntArray(int[] array, int offset);
 
     /**
     * Pass on the work of parsing the message onto the subclass.  The better

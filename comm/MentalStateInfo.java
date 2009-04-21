@@ -38,51 +38,48 @@ public class MentalStateInfo extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = robotID;
-		array[3] = points.x;
-		array[4] = points.y;
-		array[5] = testing ? 1 : 0;
-		array[6] = testing2.getX();
-		array[7] = testing2.getY();
-		array[8] = anotherInt;
-		array[9] = test.length;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = robotID;
+		array[offset + 2 + 1] = points.x;
+		array[offset + 2 + 1 + 1] = points.y;
+		array[offset +5] = testing ? 1 : 0;
+		array[offset +6] = testing2.getX();
+		array[offset +7] = testing2.getY();
+		array[offset +8] = anotherInt;
+		array[offset +9] = test.length;
 		for (int i = 0; i < test.length; i++) {
-			int startIndex =  (1 * i) +10;
+			int startIndex = offset + (1 * i) +10;
 			int tmptest = test[i];
 			array[startIndex+0] = tmptest;
 		}
-		array[ (1 * test.length)+10] = testing3.length;
+		array[offset + (1 * test.length)+10] = testing3.length;
 		for (int i = 0; i < testing3.length; i++) {
-			int startIndex =  (1 * test.length)+ (2 * i) +11;
+			int startIndex = offset + (1 * test.length)+ (2 * i) +11;
 			MapLocation tmptesting3 = testing3[i];
 			array[startIndex+0] = tmptesting3.getX();
 			array[startIndex +1] = tmptesting3.getY();
 		}
-		array[ (1 * test.length) + (2 * testing3.length)+11] = testing4.length;
+		array[offset + (1 * test.length) + (2 * testing3.length)+11] = testing4.length;
 		for (int i = 0; i < testing4.length; i++) {
-			int startIndex =  (1 * test.length) + (2 * testing3.length)+ (2 * i) +12;
+			int startIndex = offset + (1 * test.length) + (2 * testing3.length)+ (2 * i) +12;
 			Point tmptesting4 = testing4[i];
 			array[startIndex] = tmptesting4.x;
 			array[startIndex + 1] = tmptesting4.y;
 		}
-		array[ (1 * test.length) + (2 * testing3.length) + (2 * testing4.length)+12] = boolArray.length;
+		array[offset + (1 * test.length) + (2 * testing3.length) + (2 * testing4.length)+12] = boolArray.length;
 		for (int i = 0; i < boolArray.length; i++) {
-			int startIndex =  (1 * test.length) + (2 * testing3.length) + (2 * testing4.length)+ (1 * i) +13;
+			int startIndex = offset + (1 * test.length) + (2 * testing3.length) + (2 * testing4.length)+ (1 * i) +13;
 			boolean tmpboolArray = boolArray[i];
 			array[startIndex+0] = tmpboolArray ? 1 : 0;
 		}
-		array[ (1 * test.length) + (2 * testing3.length) + (2 * testing4.length) + (1 * boolArray.length)+13] = ints.length;
+		array[offset + (1 * test.length) + (2 * testing3.length) + (2 * testing4.length) + (1 * boolArray.length)+13] = ints.length;
 		for (int i = 0; i < ints.length; i++) {
-			int startIndex =  (1 * test.length) + (2 * testing3.length) + (2 * testing4.length) + (1 * boolArray.length)+ (1 * i) +14;
+			int startIndex = offset + (1 * test.length) + (2 * testing3.length) + (2 * testing4.length) + (1 * boolArray.length)+ (1 * i) +14;
 			int tmpints = ints[i];
 			array[startIndex+0] = tmpints;
 		}
-		return array;
 	}
 	public MentalStateInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

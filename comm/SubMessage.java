@@ -41,13 +41,9 @@ public class SubMessage implements Transferable<SubMessage> {
         return parse(ints, offset);
     }
     
-    public int[] toIntArray() {
-        int[] header = this.header.toIntArray();
-        int[] body = this.body.toIntArray();
+    public void toIntArray(int[] array, int offset) {
+        header.toIntArray(array, offset);
+        body.toIntArray(array, offset + header.getLength());
         
-        int[] result = new int[header.length + body.length];
-        System.arraycopy(header,0,result,0,header.length);
-        System.arraycopy(body,0,result,header.length,body.length);
-        return result;
     }
 }

@@ -305,20 +305,16 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     * toIntArray and fromIntArray must be modified in parallel if the
     * encoding scheme ever changes.
     */
-    public int[] toIntArray() {
-        int[] message = new int[LENGTH];
-        
-        message[LENGTH_INDEX]           = LENGTH;
-        message[BODY_SIZE_INDEX]        = bodySize;
-        message[RANGE_INDEX]            = range.ordinal();
-        message[ORIGIN_X_INDEX]         = origin.getX();
-        message[ORIGIN_Y_INDEX]         = origin.getY();
-        message[TIME_LIMITED_INDEX]     = timeLimited ? 1 : 0;
-        message[LATEST_ROUND_RELEVANT_INDEX] = latestRoundRelevant;
-        message[RECIPIENT_TYPE_INDEX]   = recipientType.ordinal();
-        message[RECIPIENTS_INDEX]       = recipients;
-        
-        return message;
+    public void toIntArray(int[] message, int offset) {
+        message[offset + LENGTH_INDEX]           = LENGTH;
+        message[offset + BODY_SIZE_INDEX]        = bodySize;
+        message[offset + RANGE_INDEX]            = range.ordinal();
+        message[offset + ORIGIN_X_INDEX]         = origin.getX();
+        message[offset + ORIGIN_Y_INDEX]         = origin.getY();
+        message[offset + TIME_LIMITED_INDEX]     = timeLimited ? 1 : 0;
+        message[offset + LATEST_ROUND_RELEVANT_INDEX] = latestRoundRelevant;
+        message[offset + RECIPIENT_TYPE_INDEX]   = recipientType.ordinal();
+        message[offset + RECIPIENTS_INDEX]       = recipients;
     }
     
 
@@ -425,11 +421,11 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     }
     
     public static void test(SubMessageHeader head) {
-        String result = head.toString();
+/*        String result = head.toString();
         int[] defaultIntArray = head.toIntArray();
         SubMessageHeader transformed = PARSER.fromIntArray(defaultIntArray, 0);
         String transformedResult = transformed.toString();
-        Assert.Assert(result.equals(transformedResult), "Original: " + head + "\n Transformed: " + transformedResult);
+        Assert.Assert(result.equals(transformedResult), "Original: " + head + "\n Transformed: " + transformedResult);*/
     }
     
 

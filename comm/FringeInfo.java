@@ -1,86 +1,75 @@
 package teamJA_ND.comm;
 
+import battlecode.common.Clock;
 
-import teamJA_ND.Point;
 
 
 public class FringeInfo extends SubMessageBody{
-	private Point[] points;
+	private int directionIndex;
 	private boolean[] groundTraversable;
-	private int[] heights;
 	public static final int ID = SubMessageBody.FRINGE_ID;
-	public static final FringeInfo PARSER = new FringeInfo(null, null, null);
+	public static final FringeInfo PARSER = new FringeInfo(0, null);
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
 
 
-	public FringeInfo (Point[] points, boolean[] groundTraversable, int[] heights) {
-		this.points = points;
+	public FringeInfo (int directionIndex, boolean[] groundTraversable) {
+		this.directionIndex = directionIndex;
 		this.groundTraversable = groundTraversable;
-		this.heights = heights;
 	}
 
 	public int getLength() {
-		return  (2 * points.length)+ (1 * groundTraversable.length)+ (1 * heights.length)+5;
+		return  (1 * groundTraversable.length)+4;
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = points.length;
-		for (int i = 0; i < points.length; i++) {
-			int startIndex =  (2 * i) +3;
-			Point tmppoints = points[i];
-			array[startIndex] = tmppoints.x;
-			array[startIndex + 1] = tmppoints.y;
-		}
-		array[ (2 * points.length)+3] = groundTraversable.length;
-		for (int i = 0; i < groundTraversable.length; i++) {
-			int startIndex =  (2 * points.length)+ (1 * i) +4;
-			boolean tmpgroundTraversable = groundTraversable[i];
-			array[startIndex+0] = tmpgroundTraversable ? 1 : 0;
-		}
-		array[ (2 * points.length) + (1 * groundTraversable.length)+4] = heights.length;
-		for (int i = 0; i < heights.length; i++) {
-			int startIndex =  (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +5;
-			int tmpheights = heights[i];
-			array[startIndex+0] = tmpheights;
-		}
-		return array;
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    
+    
+    
+
+	public void toIntArray(int[] array, int offset) {
+	    array[offset] = getLength();
+        array[++offset] = ID;
+        array[++offset] = directionIndex;
+        array[++offset] = groundTraversable.length;
+        debug_tick();
+        for (int i = 0; i < groundTraversable.length; i++) {
+        	array[++offset] = groundTraversable[i] ? 1 : 0;
+        }
+        debug_tock();
+        
+        for (int i = 0; i < groundTraversable.length; i++) {}
+        debug_tock();
 	}
+	
 	public FringeInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
-		int pointssize = array[counter+0];
-		Point[] points = new Point[pointssize];
-		for (int i = 0; i < points.length; i++) {
-			int startIndex = counter+ (2 * i) +1;
-			Point tmppoints = new Point(array[startIndex], array[startIndex+1]);
-			points[i] = tmppoints;
-		}
-		int groundTraversablesize = array[counter + (2 * points.length)+1];
+		int directionIndex = array[counter+0];
+		int groundTraversablesize = array[counter +1];
 		boolean[] groundTraversable = new boolean[groundTraversablesize];
 		for (int i = 0; i < groundTraversable.length; i++) {
-			int startIndex = counter + (2 * points.length)+ (1 * i) +2;
+			int startIndex = counter + (1 * i) +2;
 			boolean tmpgroundTraversable = (array[startIndex+0] == 1);
 			groundTraversable[i] = tmpgroundTraversable;
 		}
-		int heightssize = array[counter + (2 * points.length) + (1 * groundTraversable.length)+2];
-		int[] heights = new int[heightssize];
-		for (int i = 0; i < heights.length; i++) {
-			int startIndex = counter + (2 * points.length) + (1 * groundTraversable.length)+ (1 * i) +3;
-			int tmpheights = array[startIndex+0];
-			heights[i] = tmpheights;
-		}
-		return new FringeInfo(points, groundTraversable, heights);
+		return new FringeInfo(directionIndex, groundTraversable);
 	}
-	public Point[] getPoints() {
-		return points;
+	public int getDirectionIndex() {
+		return directionIndex;
 	}
 	public boolean[] getGroundTraversable() {
 		return groundTraversable;
-	}
-	public int[] getHeights() {
-		return heights;
 	}
 }

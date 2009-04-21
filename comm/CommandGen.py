@@ -171,13 +171,11 @@ def writeGetLength(f, declarations):
 
     
 def writeToIntArray(f, classTitle, variables):
-    f.write("\tpublic int[] toIntArray() {\n")
-    f.write("\t\tfinal int LENGTH = getLength();\n");
-    f.write("\t\tint[] array = new int[LENGTH];\n");
-    f.write("\t\tarray[0] = LENGTH;\n");
-    f.write("\t\tarray[1] = ID;\n")
+    f.write("\tpublic void toIntArray(int[] array, int offset) {\n")
+    f.write("\t\tarray[offset] = getLength();\n");
+    f.write("\t\tarray[offset + 1] = ID;\n")
     
-    counter = "2"
+    counter = "offset + 2"
     for variable in variables:
         var = variable.implementation
         
@@ -190,13 +188,9 @@ def writeToIntArray(f, classTitle, variables):
         except ValueError:
             counter += " + " + var.numIntsToRepresent()
             
-
-    
-    
-    f.write("\t\treturn array;\n")
     f.write("\t}\n")
     
-    pass
+
     
 def writeFromIntArray(f, classTitle, variables):
     f.write("\tpublic " + classTitle + " fromIntArray(int[] array, int offset) {\n")

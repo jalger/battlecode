@@ -184,69 +184,47 @@ public class MessageUtil {
                                MapLocation currentSquare,
                                int robotID,
                                int robotMessageID) {
-                               
-        // Create a header and encode the location of sending robot
-        int[] header = createHeader(robotID, robotMessageID);
         
+                                   
         
-        MapLocation[] locations = new MapLocation[] { currentSquare };
-
-        // Pack all of the messages into their int arrays
-        int[][] packedMessages = new int[messages.size()][];
-        int totalSize = header.length;
-        int counter = 0;
+        // Calculate the number of ints needed to represent the submessages
+        int subMessageSize = 0;
         for (SubMessage m : messages) {
-            int[] packedMessage = m.toIntArray();
-            totalSize += packedMessage.length;
-            packedMessages[counter++] = packedMessage;
+            subMessageSize += m.getLength();
         }
-
-        //System.out.println("place 1");
-
-        // We now have all of our messages packed in a two dimensional
-        // array; we need to flatten the data structure into a single int
-        // array
-        int[] wholeMessage = new int[totalSize];
-        // Copy header into place
-        System.arraycopy(header, 0, wholeMessage, 0, header.length);
-
-        /*
-        System.out.println("place 1.5, total size:" + totalSize );
-        System.out.println(java.util.Arrays.toString(wholeMessage));
-        */
-
-        // Copy the rest of the messages into place
-        for (int i = 0, curPos = header.length; i < packedMessages.length; i++) {
-            int[] packed = packedMessages[i];
-            System.arraycopy(packed, 0, wholeMessage, curPos, packed.length);
-            curPos += packed.length;
-        }
-
-        //System.out.println("place 2");
-
-        Message m = new Message();
-        m.strings = null;
-        m.ints = wholeMessage;
-        m.locations = locations;
         
-        //System.out.println("place 3");
+
+        int[] encodedMessage = new int[NUM_HEADER_FIELDS + subMessageSize];
+
+        createHeader(encodedMessage, 0, robotID, robotMessageID);
+        
+        //int clockByteNum = Clock.getBytecodeNum();
+        
+        int offset = NUM_HEADER_FIELDS;
+        for (SubMessage m : messages) {
+            m.toIntArray(encodedMessage, offset);
+            offset += m.getLength();
+        }                       
+       // System.out.println("Took " + (Clock.getBytecodeNum() - clockByteNum) + " for calculating length");
+        
+    
+        Message m = new Message();
+        m.ints = encodedMessage;
+        m.locations = new MapLocation[] { currentSquare };
 
         return m;
     }
 
 
-
-    private static int[] createHeader(int robotID, int robotMessageID) {
+    private static void createHeader(int[] packedMessage, int offset, int robotID, int robotMessageID) {
         // Fill an array with all the information that we use to distinguish
         // legitimate information
-        int[] header = new int[NUM_HEADER_FIELDS];
-        header[ROBOT_MESSAGE_ID_INDEX] = robotMessageID;
-        header[ROBOT_ID_INDEX] = robotID;
-        header[CLOCK_INDEX] = Clock.getRoundNum();
+        packedMessage[offset + ROBOT_MESSAGE_ID_INDEX] = robotMessageID;
+        packedMessage[offset + ROBOT_ID_INDEX] = robotID;
+        packedMessage[offset + CLOCK_INDEX] = Clock.getRoundNum();
         
         // Make a hash out of previous 3 values
-        header[HASH_INDEX] = simpleHash(header, 0, 3);
-        return header;
+        packedMessage[offset + HASH_INDEX] = simpleHash(packedMessage, offset, 3);
     }
 
     /**
@@ -380,7 +358,7 @@ public class MessageUtil {
         SubMessageBody b2 = new AttackCommand (CUR_LOC);
         SubMessageHeader h2 = new SubMessageHeader.Builder(CUR_LOC, b2.getLength()).build();
         
-        SubMessageBody b3 = new JoinGroup (ROBOT_ID, GROUP_ID);
+        SubMessageBody b3 = new JoinGroupCommand (ROBOT_ID, GROUP_ID);
         SubMessageHeader h3 = new SubMessageHeader.Builder(CUR_LOC, b3.getLength()).build();
         
         
@@ -389,21 +367,17 @@ public class MessageUtil {
         SubMessage m3 = new SubMessage(h3, b3);
         
         final int NUM_POINTS = 17;
-        teamJA_ND.Point[] points = new teamJA_ND.Point[NUM_POINTS];
         boolean[] groundTraversable = new boolean[NUM_POINTS];
-        int[] heights = new int[NUM_POINTS];
         
         for (int i = 0; i < NUM_POINTS; i++) {
-            points[i] = new teamJA_ND.Point(i + 23, i -23523);
             groundTraversable[i] = (i % 2 == 0);
-            heights[i] = i %2 + 23623 / 235 * i;
         }
         
-        SubMessageBody b4 = new FringeInfo(points, groundTraversable, heights);
+        SubMessageBody b4 = new FringeInfo(1, groundTraversable);
         SubMessageHeader h4 = new SubMessageHeader.Builder(CUR_LOC, b4.getLength()).build();
         SubMessage m4 = new SubMessage(h4, b4);
         
-        List<SubMessage> sms = Arrays.asList(new SubMessage[] {m, m2, m3, m4});
+        List<SubMessage> sms = Arrays.asList(new SubMessage[] {m, m2 ,m3, m4});
         
         Message packed = pack(sms, 
                             CUR_LOC,
@@ -412,7 +386,7 @@ public class MessageUtil {
                             
                             
         //System.out.println("The message is " + packed.ints.length + " ints long.");
-        System.out.println(java.util.Arrays.toString(packed.ints));
+        //System.out.println(java.util.Arrays.toString(packed.ints));
         //System.out.println(java.util.Arrays.toString(packed.ints) + java.util.Arrays.toString(packed.strings));
 
         //List <SubMessageHeader> headers = unpackHeaders(packed);

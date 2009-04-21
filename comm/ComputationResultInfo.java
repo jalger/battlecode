@@ -16,12 +16,9 @@ public class ComputationResultInfo extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
 	}
 	public ComputationResultInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

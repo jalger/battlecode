@@ -24,16 +24,13 @@ public class CalculatePath extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = x0;
-		array[3] = y0;
-		array[4] = x1;
-		array[5] = y1;
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = x0;
+		array[offset +3] = y0;
+		array[offset +4] = x1;
+		array[offset +5] = y1;
 	}
 	public CalculatePath fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

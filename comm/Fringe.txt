@@ -1,5 +1,4 @@
 FringeInfo
 FRINGE
-private Point[] points;
+private int directionIndex;
 private boolean[] groundTraversable;
-private int[] heights;

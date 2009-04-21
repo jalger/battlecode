@@ -20,14 +20,11 @@ public class CommandAcknowledgedInfo extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = commandingRobotID;
-		array[3] = commandID;
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = commandingRobotID;
+		array[offset +3] = commandID;
 	}
 	public CommandAcknowledgedInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;

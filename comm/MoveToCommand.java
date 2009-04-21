@@ -22,15 +22,12 @@ public class MoveToCommand extends SubMessageBody{
 	}
 	public int getID() { return ID; }
 
-	public int[] toIntArray() {
-		final int LENGTH = getLength();
-		int[] array = new int[LENGTH];
-		array[0] = LENGTH;
-		array[1] = ID;
-		array[2] = x;
-		array[3] = y;
-		array[4] = absolute ? 1 : 0;
-		return array;
+	public void toIntArray(int[] array, int offset) {
+		array[offset] = getLength();
+		array[offset + 1] = ID;
+		array[offset +2] = x;
+		array[offset +3] = y;
+		array[offset +4] = absolute ? 1 : 0;
 	}
 	public MoveToCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
