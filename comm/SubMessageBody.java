@@ -81,6 +81,12 @@ public abstract class SubMessageBody implements Transferable<SubMessageBody>
     public static SubMessageBody parserFromID(int id) {
         
         switch (id) {
+            case ATTACK_ID:
+                return AttackCommand.PARSER;
+            
+            case MOVE_TO_ID:
+                return MoveToCommand.PARSER;
+            
             case SHOVE_ID:
                 return ShoveCommand.PARSER;
                 

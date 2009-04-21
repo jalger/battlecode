@@ -84,7 +84,10 @@ def writeHeader(f, title, variables, packageName = "teamJA_ND.comm"):
         if (neededImport != None):
             f.write("import " + neededImport + ";\n")
     
+    # We also need the clock for timing purposes
+    f.write("import battlecode.common.Clock;")
     f.write("\n\n")
+    
     f.write("public class " + title + " extends " + EXTENDS_FILE)
 
     
@@ -96,7 +99,11 @@ def writeDeclarations(f, title, enumID, declarations):
     f.write("\tpublic static final int ID = " + ENUM_FILE + "." + enumID + "_ID;\n")
     # Write the static parser declaration
     f.write("\tpublic static final " + title + " PARSER = new " + title + "(" + getDefaultArguments(declarations) + ");\n" )
-    
+    f.write("""
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    """)
     f.write("\n\n")
     
     
@@ -132,6 +139,10 @@ def writeFunctions(f, classTitle, enumID, declarations):
     
     writeGetters(f, declarations)    
     
+    writeTick(f)
+    
+    writeTock(f)
+    
 def writeGetID(f):
     f.write("\tpublic int getID() { return ID; }\n\n")    
     
@@ -153,6 +164,24 @@ def writeGetters(f, variables):
         f.write("\t\treturn " + variable.name + ";\n")
         f.write("\t}\n")
 
+def writeTick(f):
+    f.write("""
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    """)
+
+    
+def writeTock(f):
+    f.write("""
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    """)
 
 
 def calculateLength(declarations):

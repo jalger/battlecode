@@ -44,6 +44,9 @@ public class SubMessage implements Transferable<SubMessage> {
     public void toIntArray(int[] array, int offset) {
         header.toIntArray(array, offset);
         body.toIntArray(array, offset + header.getLength());
-        
+    }
+    
+    public String toString() {
+        return "Header: " + header.toString() + "\n" + "Body: " + body.toString();
     }
 }

@@ -63,6 +63,8 @@ public class MessageUtil {
     // We include just 1 MapLocation in the message
     private static final int NUM_MAP_LOCATIONS = 1;
 
+    private static final boolean DEBUG = true;
+
     public static void main (String [] args)
     {
 
@@ -73,7 +75,7 @@ public class MessageUtil {
     * @return a list of SubMessage objects, each of which contains 
     * information about what action to take, or general information.
     **/
-    public List<SubMessage> getRelevantSubMessages(Message m, KnowledgeBase kb) {
+    public static List<SubMessage> getRelevantSubMessages(Message m, KnowledgeBase kb) {
 
 
         // if Message is from our team
@@ -88,12 +90,16 @@ public class MessageUtil {
             
             // Else it's legitimate.
             else {
+                if (DEBUG) { System.out.println("It's legitimate"); }
+                
                 // We will go through each header and determine if the 
                 // corresponding message pertains to us.  Only then do we need
                 // to bother with parsing the message.
                 
                 // Parse all of the message headers.
                 List <SubMessageHeader> headers = unpackHeaders(m);
+                
+                if (DEBUG) {System.out.println("Unpacked the headers");}
                 
                 int start = NUM_HEADER_FIELDS;
                 List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
@@ -102,7 +108,7 @@ public class MessageUtil {
                 for (SubMessageHeader h : headers) {
                     if (h.pertainsToRobot(kb)) {
                         // Parse the body that corresponds with the header
-                        SubMessageBody b = SubMessageBody.parse(m.ints, start);
+                        SubMessageBody b = SubMessageBody.parse(m.ints, start + h.getLength());
                         bodies.add(b);
                         
                         submessages.add(new SubMessage(h, b));
@@ -262,22 +268,26 @@ public class MessageUtil {
     * matches our format and that the hash stored within the header
     * matches the hash of the message
     */
-    public static boolean isWellFormedHeader(int[] header) {
+    public static boolean isWellFormedHeader(int[] message) {
         // Check for the hash to match
-        int storedHash = header[header.length - 1];
-        int resultHash = simpleHash(header, 0, header.length - 1);
+        int storedHash = message[HASH_INDEX];
+        // Take a hash of the first few fields that are what the hash is of.
+        int resultHash = simpleHash(message, 0, NUM_HEADER_FIELDS - 1);
 
         return storedHash == resultHash;
     }
 
 
+    // TODO: How do we check for legitimacy?
     /**
     * Given a Message that is ostensibly from our team, determine
     * whether it has been tampered with.
-    * Assumes that the strings and ints fields are not null.
+    * Assumes that the ints fields are not null.
     * @param m the Message to check for legitimacy
     */
     public static boolean isLegitimate(Message m) {
+        return true;
+        /*
         String[] strings = m.strings;
         int[] ints = m.ints;
 
@@ -290,12 +300,11 @@ public class MessageUtil {
             return false;
         }
 
-
         // Ensure that the hash of the header matches
         if (simpleHash(strings[0]) != ints[0]) {
             return false;
         }
-        return false;
+        return false;*/
     }
 
     
@@ -385,12 +394,25 @@ public class MessageUtil {
                             ROBOT_MESSAGE_ID);
                             
                             
-        //System.out.println("The message is " + packed.ints.length + " ints long.");
-        //System.out.println(java.util.Arrays.toString(packed.ints));
+        System.out.println("The message is " + packed.ints.length + " ints long.");
+        System.out.println(java.util.Arrays.toString(packed.ints));
         //System.out.println(java.util.Arrays.toString(packed.ints) + java.util.Arrays.toString(packed.strings));
 
-        //List <SubMessageHeader> headers = unpackHeaders(packed);
-        //System.out.println(headers.toString() + "\n" + h.toString());
+        List <SubMessageHeader> headers = unpackHeaders(packed);
+        System.out.println(headers.toString() + "\n\n" + h.toString() + h2.toString() + h3.toString() + h4.toString());
+        
+        Assert.Assert(fromOurTeam(packed), "We made this message; " + 
+            "it'd better show up as being from our team");
+            
+        Assert.Assert(headers.get(0).toString().equals(h.toString()));
+        Assert.Assert(headers.get(1).toString().equals(h2.toString()));
+        Assert.Assert(headers.get(2).toString().equals(h3.toString()));
+        Assert.Assert(headers.get(3).toString().equals(h4.toString()));
+            
+        
+        List<SubMessage> retrieved = getRelevantSubMessages(packed, new KnowledgeBase());
+        System.out.println(sms.toString() + "\n\n" + retrieved.toString());
+        //Assert.Assert(sms.toString().equals(retrieved.toString()));
         
     }
 
