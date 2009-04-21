@@ -3,7 +3,7 @@ package teamJA_ND.comm;
 
 import battlecode.common.MapLocation;
 import teamJA_ND.Point;
-
+import battlecode.common.Clock;
 
 public class MentalStateInfo extends SubMessageBody{
 	private int robotID;
@@ -19,6 +19,10 @@ public class MentalStateInfo extends SubMessageBody{
 	public static final int ID = SubMessageBody.MENTAL_STATE_ID;
 	public static final MentalStateInfo PARSER = new MentalStateInfo(0, null, false, null, 0, null, null, null, null, null);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public MentalStateInfo (int robotID, Point points, boolean testing, MapLocation testing2, int anotherInt, int[] test, MapLocation[] testing3, Point[] testing4, boolean[] boolArray, int[] ints) {
 		this.robotID = robotID;
@@ -155,4 +159,16 @@ public class MentalStateInfo extends SubMessageBody{
 	public int[] getInts() {
 		return ints;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

@@ -2,7 +2,7 @@ package teamJA_ND.comm;
 
 
 import battlecode.common.MapLocation;
-
+import battlecode.common.Clock;
 
 public class GiveEnergonCommand extends SubMessageBody{
 	private int robotID;
@@ -11,6 +11,10 @@ public class GiveEnergonCommand extends SubMessageBody{
 	public static final int ID = SubMessageBody.GIVE_ENERGON_ID;
 	public static final GiveEnergonCommand PARSER = new GiveEnergonCommand(0, 0, null);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public GiveEnergonCommand (int robotID, int requestedAmount, MapLocation location) {
 		this.robotID = robotID;
@@ -47,4 +51,16 @@ public class GiveEnergonCommand extends SubMessageBody{
 	public MapLocation getLocation() {
 		return location;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

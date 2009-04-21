@@ -3,7 +3,7 @@ package teamJA_ND.comm;
 
 import battlecode.common.MapLocation;
 import teamJA_ND.Point;
-
+import battlecode.common.Clock;
 
 public class Test extends SubMessageBody{
 	 Point[][] points;
@@ -13,6 +13,10 @@ public class Test extends SubMessageBody{
 	public static final int ID = SubMessageBody.FRINGE_ID;
 	public static final Test PARSER = new Test(null, null, null, null);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public Test (Point[][] points, int[][] ints, MapLocation[][] mapLocs, boolean[][] booleans) {
 		this.points = points;
@@ -128,4 +132,16 @@ public class Test extends SubMessageBody{
 	public boolean[][] getBooleans() {
 		return booleans;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

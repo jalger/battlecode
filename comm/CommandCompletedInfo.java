@@ -1,7 +1,7 @@
 package teamJA_ND.comm;
 
 
-
+import battlecode.common.Clock;
 
 public class CommandCompletedInfo extends SubMessageBody{
 	private int commandingRobotID;
@@ -9,6 +9,10 @@ public class CommandCompletedInfo extends SubMessageBody{
 	public static final int ID = SubMessageBody.COMMAND_COMPLETED_ID;
 	public static final CommandCompletedInfo PARSER = new CommandCompletedInfo(0, 0);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public CommandCompletedInfo (int commandingRobotID, int commandID) {
 		this.commandingRobotID = commandingRobotID;
@@ -38,4 +42,16 @@ public class CommandCompletedInfo extends SubMessageBody{
 	public int getCommandID() {
 		return commandID;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

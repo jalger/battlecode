@@ -1,7 +1,7 @@
 package teamJA_ND.comm;
 
 
-
+import battlecode.common.Clock;
 
 public class JoinGroupCommand extends SubMessageBody{
 	private int robotID;
@@ -9,6 +9,10 @@ public class JoinGroupCommand extends SubMessageBody{
 	public static final int ID = SubMessageBody.JOIN_GROUP_ID;
 	public static final JoinGroupCommand PARSER = new JoinGroupCommand(0, 0);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public JoinGroupCommand (int robotID, int groupID) {
 		this.robotID = robotID;
@@ -38,4 +42,16 @@ public class JoinGroupCommand extends SubMessageBody{
 	public int getGroupID() {
 		return groupID;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

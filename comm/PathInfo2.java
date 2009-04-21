@@ -2,13 +2,17 @@ package teamJA_ND.comm;
 
 
 import teamJA_ND.Point;
-
+import battlecode.common.Clock;
 
 public class PathInfo2 extends SubMessageBody{
 	private Point[] points;
 	public static final int ID = SubMessageBody.PATH_ID;
 	public static final PathInfo2 PARSER = new PathInfo2(null);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public PathInfo2 (Point[] points) {
 		this.points = points;
@@ -44,4 +48,16 @@ public class PathInfo2 extends SubMessageBody{
 	public Point[] getPoints() {
 		return points;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

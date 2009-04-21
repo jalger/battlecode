@@ -2,13 +2,17 @@ package teamJA_ND.comm;
 
 
 import battlecode.common.MapLocation;
-
+import battlecode.common.Clock;
 
 public class AttackCommand extends SubMessageBody{
 	private MapLocation location;
 	public static final int ID = SubMessageBody.ATTACK_ID;
 	public static final AttackCommand PARSER = new AttackCommand(null);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public AttackCommand (MapLocation location) {
 		this.location = location;
@@ -33,4 +37,16 @@ public class AttackCommand extends SubMessageBody{
 	public MapLocation getLocation() {
 		return location;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }

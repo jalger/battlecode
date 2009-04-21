@@ -1,7 +1,7 @@
 package teamJA_ND.comm;
 
 
-
+import battlecode.common.Clock;
 
 public class MapAreaInfo extends SubMessageBody{
 	private boolean[][] groundTraversable;
@@ -13,6 +13,10 @@ public class MapAreaInfo extends SubMessageBody{
 	public static final int ID = SubMessageBody.MAP_DELTA_ID;
 	public static final MapAreaInfo PARSER = new MapAreaInfo(null, null, 0, 0, 0, 0);
 
+    int clockTurnNum;
+    int clockByteNum;
+    final int BYTES_PER_ROUND = 6000;
+    
 
 	public MapAreaInfo (boolean[][] groundTraversable, boolean[][] visited, int left, int top, int right, int bottom) {
 		this.groundTraversable = groundTraversable;
@@ -102,4 +106,16 @@ public class MapAreaInfo extends SubMessageBody{
 	public int getBottom() {
 		return bottom;
 	}
-}
+
+    public void debug_tick() {
+        clockTurnNum = Clock.getRoundNum();
+        clockByteNum = Clock.getBytecodeNum();
+    }
+    
+    public void debug_tock() {
+        int turnFinal = Clock.getRoundNum();
+        int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
+        int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
+        System.out.println(delta + " bytecodes used since calling debug_tick().");
+    }
+    }
