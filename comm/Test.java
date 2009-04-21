@@ -10,7 +10,7 @@ public class Test extends SubMessageBody{
 	 int[][] ints;
 	 MapLocation[][] mapLocs;
 	 boolean[][] booleans;
-	public static final int ID = SubMessageBody.SubMessageBodyType.FRINGE.getID();
+	public static final int ID = SubMessageBody.FRINGE_ID;
 	public static final Test PARSER = new Test(null, null, null, null);
 
 

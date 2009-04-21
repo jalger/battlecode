@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class ComputationResultInfo extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.COMPUTATION_RESULT.getID();
+	public static final int ID = SubMessageBody.COMPUTATION_RESULT_ID;
 	public static final ComputationResultInfo PARSER = new ComputationResultInfo();
 
 

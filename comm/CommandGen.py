@@ -10,13 +10,13 @@
 # Line 1: Class name, what the .java file will be called
 # Line 2: The name of the SubMessageBodyType enum within SubMessageBody.
 # We use this in order to keep all of the IDs for messages within one place
-# Line 3+: [private | public ] int | boolean | MapLocation | Point [ "[]" ]? identifier;
+# Line 3+: [private | public ] int | boolean | MapLocation | Point [ "[]" || "[][]" ]? identifier;
 #
 # In other words, lines 3 on accept a declaration of a single int, boolean,
-# MapLocation, Point, or a one dimensional array of each
+# MapLocation, Point, or a one or two dimensional array of each
 #
 # Author: Nicholas Dunn
-# Date:   April 14, 2009
+# Date:   April 20, 2009
 
 FILE_EXTENSION = ".java"
 ENUM_FILE = "SubMessageBody"
@@ -32,7 +32,6 @@ from JavaVariable import *
 def main ():
 
     global options, args
-    # TODO: Do something more interesting here...
     
     for f in args:
         processFile(open(f, "r"))
@@ -55,7 +54,6 @@ def processFile(f):
     for line in f:
         # strip out white space (new lines)
         variableDeclarations.append(line.strip())
-    print classTitle, enumID, variableDeclarations
 
     for decl in variableDeclarations:
         x = Variable(decl)
@@ -91,18 +89,17 @@ def writeHeader(f, title, variables, packageName = "teamJA_ND.comm"):
 
     
 def writeDeclarations(f, title, enumID, declarations):
+    
     for declaration in declarations:
         f.write("\t" + str(declaration) + "\n")
         
-    f.write("\tpublic static final int ID = " + ENUM_FILE + "." + ENUM_NAME + "." + enumID + ".getID();\n")    
-    
+    f.write("\tpublic static final int ID = " + ENUM_FILE + "." + enumID + "_ID;\n")
     # Write the static parser declaration
     f.write("\tpublic static final " + title + " PARSER = new " + title + "(" + getDefaultArguments(declarations) + ");\n" )
     
     f.write("\n\n")
-    pass
-
-# TODO: fill this in
+    
+    
 def getDefaultArguments(declarations):
     vals = ""
     for f in declarations:
@@ -167,7 +164,6 @@ def calculateLength(declarations):
     return condense(MIN_LENGTH + "+" + additional)
 
 
-# TODO: Length is not constant in the presence of arrays.    
 def writeGetLength(f, declarations):
     f.write("\tpublic int getLength() {\n")
     f.write("\t\treturn " + calculateLength(declarations) + ";\n")

@@ -6,7 +6,7 @@ package teamJA_ND.comm;
 public class CommandCompletedInfo extends SubMessageBody{
 	private int commandingRobotID;
 	private int commandID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.COMMAND_COMPLETED.getID();
+	public static final int ID = SubMessageBody.COMMAND_COMPLETED_ID;
 	public static final CommandCompletedInfo PARSER = new CommandCompletedInfo(0, 0);
 
 

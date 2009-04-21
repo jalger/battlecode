@@ -8,7 +8,7 @@ public class FringeInfo extends SubMessageBody{
 	private Point[] points;
 	private boolean[] groundTraversable;
 	private int[] heights;
-	public static final int ID = SubMessageBody.SubMessageBodyType.FRINGE.getID();
+	public static final int ID = SubMessageBody.FRINGE_ID;
 	public static final FringeInfo PARSER = new FringeInfo(null, null, null);
 
 

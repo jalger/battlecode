@@ -5,7 +5,7 @@ package teamJA_ND.comm;
 
 public class BelayOrder extends SubMessageBody{
 	private int orderID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.BELAY_ORDER.getID();
+	public static final int ID = SubMessageBody.BELAY_ORDER_ID;
 	public static final BelayOrder PARSER = new BelayOrder(0);
 
 

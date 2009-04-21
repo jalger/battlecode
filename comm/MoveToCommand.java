@@ -7,7 +7,7 @@ public class MoveToCommand extends SubMessageBody{
 	private int x;
 	private int y;
 	private boolean absolute;
-	public static final int ID = SubMessageBody.SubMessageBodyType.MOVE_TO.getID();
+	public static final int ID = SubMessageBody.MOVE_TO_ID;
 	public static final MoveToCommand PARSER = new MoveToCommand(0, 0, false);
 
 

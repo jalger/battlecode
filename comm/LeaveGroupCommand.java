@@ -5,7 +5,7 @@ package teamJA_ND.comm;
 
 public class LeaveGroupCommand extends SubMessageBody{
 	private int id;
-	public static final int ID = SubMessageBody.SubMessageBodyType.LEAVE_GROUP.getID();
+	public static final int ID = SubMessageBody.LEAVE_GROUP_ID;
 	public static final LeaveGroupCommand PARSER = new LeaveGroupCommand(0);
 
 

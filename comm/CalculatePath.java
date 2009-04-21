@@ -8,7 +8,7 @@ public class CalculatePath extends SubMessageBody{
 	private int y0;
 	private int x1;
 	private int y1;
-	public static final int ID = SubMessageBody.SubMessageBodyType.CALCULATE_PATH.getID();
+	public static final int ID = SubMessageBody.CALCULATE_PATH_ID;
 	public static final CalculatePath PARSER = new CalculatePath(0, 0, 0, 0);
 
 

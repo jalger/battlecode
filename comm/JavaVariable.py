@@ -86,8 +86,7 @@ class Variable:
             self.type = strings[1]
             self.name = strings[2]
         
-        # TODO: arrays
-        
+
         # Switch on the type of the variable
         self.implementation = {
               INT: Int(self.name),

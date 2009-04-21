@@ -8,7 +8,7 @@ public class GiveEnergonCommand extends SubMessageBody{
 	private int robotID;
 	private int requestedAmount;
 	private MapLocation location;
-	public static final int ID = SubMessageBody.SubMessageBodyType.GIVE_ENERGON.getID();
+	public static final int ID = SubMessageBody.GIVE_ENERGON_ID;
 	public static final GiveEnergonCommand PARSER = new GiveEnergonCommand(0, 0, null);
 
 

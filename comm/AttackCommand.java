@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 
 public class AttackCommand extends SubMessageBody{
 	private MapLocation location;
-	public static final int ID = SubMessageBody.SubMessageBodyType.ATTACK.getID();
+	public static final int ID = SubMessageBody.ATTACK_ID;
 	public static final AttackCommand PARSER = new AttackCommand(null);
 
 

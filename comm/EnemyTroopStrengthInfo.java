@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class EnemyTroopStrengthInfo extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.ENEMY_TROOP_STRENGTH.getID();
+	public static final int ID = SubMessageBody.ENEMY_TROOP_STRENGTH_ID;
 	public static final EnemyTroopStrengthInfo PARSER = new EnemyTroopStrengthInfo();
 
 

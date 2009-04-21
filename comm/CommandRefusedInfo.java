@@ -6,7 +6,7 @@ package teamJA_ND.comm;
 public class CommandRefusedInfo extends SubMessageBody{
 	private int commandingRobotID;
 	private int commandID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.COMMAND_REFUSED.getID();
+	public static final int ID = SubMessageBody.COMMAND_REFUSED_ID;
 	public static final CommandRefusedInfo PARSER = new CommandRefusedInfo(0, 0);
 
 

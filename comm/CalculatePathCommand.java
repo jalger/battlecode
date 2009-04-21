@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class CalculatePathCommand extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.CALCULATE_PATH.getID();
+	public static final int ID = SubMessageBody.CALCULATE_PATH_ID;
 	public static final CalculatePathCommand PARSER = new CalculatePathCommand();
 
 

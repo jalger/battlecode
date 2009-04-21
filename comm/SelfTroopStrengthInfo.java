@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class SelfTroopStrengthInfo extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.SELF_TROOP_STRENGTH.getID();
+	public static final int ID = SubMessageBody.SELF_TROOP_STRENGTH_ID;
 	public static final SelfTroopStrengthInfo PARSER = new SelfTroopStrengthInfo();
 
 

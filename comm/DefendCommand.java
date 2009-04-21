@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class DefendCommand extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.DEFEND.getID();
+	public static final int ID = SubMessageBody.DEFEND_ID;
 	public static final DefendCommand PARSER = new DefendCommand();
 
 

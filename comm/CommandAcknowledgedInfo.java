@@ -6,7 +6,7 @@ package teamJA_ND.comm;
 public class CommandAcknowledgedInfo extends SubMessageBody{
 	private int commandingRobotID;
 	private int commandID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.COMMAND_ACKNOWLEDGED.getID();
+	public static final int ID = SubMessageBody.COMMAND_ACKNOWLEDGED_ID;
 	public static final CommandAcknowledgedInfo PARSER = new CommandAcknowledgedInfo(0, 0);
 
 

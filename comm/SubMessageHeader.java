@@ -123,9 +123,9 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     * Builder pattern is described in Item 2 of Effective Java; it allows
     * caller to emulate named optional parameters.
     * One sample usage is as follows:
-    * SubMessageHeader f = new SubMessageHeader.Builder(new MapLocation(100, 200)).range(Range.SHORT).build();
+    * SubMessageHeader f = new SubMessageHeader.Builder(new MapLocation(100, 200), 15).range(Range.SHORT).build();
     * This would create a SubMessageHeader with default values except for the range and the passed
-    * in (required) origin
+    * in (required) origin and size of body
     */
     public static class Builder 
     {

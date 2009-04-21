@@ -4,7 +4,7 @@ package teamJA_ND.comm;
 
 
 public class MapDeltaInfo extends SubMessageBody{
-	public static final int ID = SubMessageBody.SubMessageBodyType.MAP_DELTA.getID();
+	public static final int ID = SubMessageBody.MAP_DELTA_ID;
 	public static final MapDeltaInfo PARSER = new MapDeltaInfo();
 
 

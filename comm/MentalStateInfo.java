@@ -16,7 +16,7 @@ public class MentalStateInfo extends SubMessageBody{
 	private Point[] testing4;
 	private boolean[] boolArray;
 	 int[] ints;
-	public static final int ID = SubMessageBody.SubMessageBodyType.MENTAL_STATE.getID();
+	public static final int ID = SubMessageBody.MENTAL_STATE_ID;
 	public static final MentalStateInfo PARSER = new MentalStateInfo(0, null, false, null, 0, null, null, null, null, null);
 
 

@@ -6,7 +6,7 @@ package teamJA_ND.comm;
 public class JoinGroupCommand extends SubMessageBody{
 	private int robotID;
 	private int groupID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.JOIN_GROUP.getID();
+	public static final int ID = SubMessageBody.JOIN_GROUP_ID;
 	public static final JoinGroupCommand PARSER = new JoinGroupCommand(0, 0);
 
 

@@ -5,7 +5,7 @@ package teamJA_ND.comm;
 
 public class ShoveCommand extends SubMessageBody{
 	private int robotID;
-	public static final int ID = SubMessageBody.SubMessageBodyType.SHOVE.getID();
+	public static final int ID = SubMessageBody.SHOVE_ID;
 	public static final ShoveCommand PARSER = new ShoveCommand(0);
 
 
