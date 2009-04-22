@@ -1,9 +1,7 @@
 package teamJA_ND;
 
-import battlecode.common.*;
-import static battlecode.common.GameConstants.*;
-
 import teamJA_ND.comm.SubMessageHeader;
+import battlecode.common.RobotController;
 
 public class RobotPlayer implements Runnable {
 
@@ -11,10 +9,10 @@ public class RobotPlayer implements Runnable {
 
     public RobotPlayer(RobotController rcIn) {
         switch(rcIn.getRobotType()) {
-            default: me = new CommunicationRobot(rcIn); break;
             case ARCHON: me = new Archon(rcIn); break;
             case SOLDIER: me = new Soldier(rcIn); break;
-            //default: me = new DefaultRobot(rcIn); break;
+//            default: me = new DefaultRobot(rcIn); break;
+            default: me = new CommunicationRobot(rcIn); break;
         }
         
         SubMessageHeader.test();
