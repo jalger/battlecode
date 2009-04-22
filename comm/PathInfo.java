@@ -1,7 +1,7 @@
 package teamJA_ND.comm;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import teamJA_ND.Point;

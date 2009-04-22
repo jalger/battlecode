@@ -60,6 +60,9 @@ def processFile(f):
      
     variables = [Variable(decl) for decl in variableDeclarations]   
     
+    for var in variables:
+        print var.toString()
+    
     
     newFile = open(classTitle + FILE_EXTENSION, "w")
     writeHeader(f=newFile, title=classTitle, variables=variables)
@@ -143,6 +146,8 @@ def writeFunctions(f, classTitle, enumID, declarations):
     
     writeTock(f)
     
+    writeToString(f, classTitle, declarations);
+    
 def writeGetID(f):
     f.write("\tpublic int getID() { return ID; }\n\n")    
     
@@ -170,7 +175,7 @@ def writeTick(f):
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    """)
+""")
 
     
 def writeTock(f):
@@ -181,7 +186,17 @@ def writeTock(f):
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    """)
+""")
+
+def writeToString(f, className, declarations):
+    f.write("\tpublic String toString() {\n")
+    f.write("\t\t return \"" + className +"\\n\"")
+    if (len(declarations) > 0):
+        f.write("+" + " +\n".join(["\t\t" + d.toString() for d in declarations]))
+    
+    f.write(";\n")
+    f.write("\t}\n")
+
 
 
 def calculateLength(declarations):

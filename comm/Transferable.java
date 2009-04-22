@@ -1,5 +1,4 @@
 package teamJA_ND.comm;
-import teamJA_ND.util.Assert;
 
 /**
 * @author Nicholas Dunn

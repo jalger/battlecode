@@ -10,23 +10,25 @@ public class Test extends SubMessageBody{
 	 int[][] ints;
 	 MapLocation[][] mapLocs;
 	 boolean[][] booleans;
+	 boolean[] oneD;
 	public static final int ID = SubMessageBody.FRINGE_ID;
-	public static final Test PARSER = new Test(null, null, null, null);
+	public static final Test PARSER = new Test(null, null, null, null, null);
 
     int clockTurnNum;
     int clockByteNum;
     final int BYTES_PER_ROUND = 6000;
     
 
-	public Test (Point[][] points, int[][] ints, MapLocation[][] mapLocs, boolean[][] booleans) {
+	public Test (Point[][] points, int[][] ints, MapLocation[][] mapLocs, boolean[][] booleans, boolean[] oneD) {
 		this.points = points;
 		this.ints = ints;
 		this.mapLocs = mapLocs;
 		this.booleans = booleans;
+		this.oneD = oneD;
 	}
 
 	public int getLength() {
-		return  (2 * (points.length* points[0].length))+ (1 * (ints.length* ints[0].length))+ (2 * (mapLocs.length* mapLocs[0].length))+ (1 * (booleans.length* booleans[0].length))+10;
+		return  (2 * (points.length* points[0].length))+ (1 * (ints.length* ints[0].length))+ (2 * (mapLocs.length* mapLocs[0].length))+ (1 * (booleans.length* booleans[0].length))+ (1 * oneD.length)+11;
 	}
 	public int getID() { return ID; }
 
@@ -75,6 +77,12 @@ public class Test extends SubMessageBody{
 				array[startIndex+0] = booleans[i][j] ? 1 : 0;
 			}
 		}
+		array[offset + (2 * (points.length* points[0].length)) + (1 * (ints.length* ints[0].length)) + (2 * (mapLocs.length* mapLocs[0].length)) + (1 * (booleans.length* booleans[0].length))+10] = oneD.length;
+		for (int i = 0; i < oneD.length; i++) {
+			int startIndex = offset + (2 * (points.length* points[0].length)) + (1 * (ints.length* ints[0].length)) + (2 * (mapLocs.length* mapLocs[0].length)) + (1 * (booleans.length* booleans[0].length))+ (1 * i) +11;
+			boolean tmponeD = oneD[i];
+			array[startIndex+0] = tmponeD ? 1 : 0;
+		}
 	}
 	public Test fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
@@ -118,7 +126,14 @@ public class Test extends SubMessageBody{
 				booleans[i][j] = tmpbooleans;
 			}
 		}
-		return new Test(points, ints, mapLocs, booleans);
+		int oneDsize = array[counter + (2 * (points.length* points[0].length)) + (1 * (ints.length* ints[0].length)) + (2 * (mapLocs.length* mapLocs[0].length)) + (1 * (booleans.length* booleans[0].length))+8];
+		boolean[] oneD = new boolean[oneDsize];
+		for (int i = 0; i < oneD.length; i++) {
+			int startIndex = counter + (2 * (points.length* points[0].length)) + (1 * (ints.length* ints[0].length)) + (2 * (mapLocs.length* mapLocs[0].length)) + (1 * (booleans.length* booleans[0].length))+ (1 * i) +9;
+			boolean tmponeD = (array[startIndex+0] == 1);
+			oneD[i] = tmponeD;
+		}
+		return new Test(points, ints, mapLocs, booleans, oneD);
 	}
 	public Point[][] getPoints() {
 		return points;
@@ -132,16 +147,26 @@ public class Test extends SubMessageBody{
 	public boolean[][] getBooleans() {
 		return booleans;
 	}
+	public boolean[] getOneD() {
+		return oneD;
+	}
 
     public void debug_tick() {
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    
+
     public void debug_tock() {
         int turnFinal = Clock.getRoundNum();
         int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    }
+	public String toString() {
+		 return "Test\n"+		"points	:" + points +
+		"ints	:" + ints +
+		"mapLocs	:" + mapLocs +
+		"booleans	:" + booleans +
+		"oneD	:" + java.util.Arrays.toString(oneD);
+	}
+}

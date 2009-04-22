@@ -1,15 +1,14 @@
 package teamJA_ND.comm;
 
-import battlecode.common.Clock;
-import battlecode.common.MapLocation;
-import battlecode.common.Message;
-
-import teamJA_ND.util.Assert;
-import teamJA_ND.KnowledgeBase;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import teamJA_ND.KnowledgeBase;
+import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.MapLocation;
+import battlecode.common.Message;
 
 
 /**
@@ -63,7 +62,7 @@ public class MessageUtil {
     // We include just 1 MapLocation in the message
     private static final int NUM_MAP_LOCATIONS = 1;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void main (String [] args)
     {
@@ -80,11 +79,11 @@ public class MessageUtil {
 
         // if Message is from our team
         if (fromOurTeam(m)) {
-            System.out.println("The message " + m + "is from our team.");
+            if (DEBUG) { System.out.println("The message " + m + "is from our team.");}
             
             // If it's been tampered with, ignore it
             if (!isLegitimate(m)) {
-                System.out.println("Message " + m + " has been tampered with");
+                if (DEBUG) { System.out.println("Message " + m + " has been tampered with"); }
                 return null;
             }
             
@@ -134,7 +133,7 @@ public class MessageUtil {
 
             // decide whether to try to screw up enemy communication by editing their message
             // and rebroadcasting
-            System.out.println("Intercepted enemy message" + m);
+            if (DEBUG) { System.out.println("Intercepted enemy message" + m); }
         }
         return null;
     }
@@ -393,16 +392,16 @@ public class MessageUtil {
                             ROBOT_ID,
                             ROBOT_MESSAGE_ID);
                             
-                            
+
         System.out.println("The message is " + packed.ints.length + " ints long.");
         System.out.println(java.util.Arrays.toString(packed.ints));
-        //System.out.println(java.util.Arrays.toString(packed.ints) + java.util.Arrays.toString(packed.strings));
+        System.out.println(java.util.Arrays.toString(packed.ints) + java.util.Arrays.toString(packed.strings));
 
         List <SubMessageHeader> headers = unpackHeaders(packed);
         System.out.println(headers.toString() + "\n\n" + h.toString() + h2.toString() + h3.toString() + h4.toString());
         
         Assert.Assert(fromOurTeam(packed), "We made this message; " + 
-            "it'd better show up as being from our team");
+        "it'd better show up as being from our team");
             
         Assert.Assert(headers.get(0).toString().equals(h.toString()));
         Assert.Assert(headers.get(1).toString().equals(h2.toString()));
@@ -413,6 +412,9 @@ public class MessageUtil {
         List<SubMessage> retrieved = getRelevantSubMessages(packed, new KnowledgeBase());
         System.out.println(sms.toString() + "\n\n" + retrieved.toString());
         //Assert.Assert(sms.toString().equals(retrieved.toString()));
+        
+        
+
         
     }
 

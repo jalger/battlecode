@@ -1,5 +1,4 @@
 package teamJA_ND.comm;
-import teamJA_ND.util.Assert;
 /**
 * A submessage represents meta information that tells a robot whether
 * the body of the message is intended for it, as well as the body

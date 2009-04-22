@@ -164,11 +164,23 @@ public class MentalStateInfo extends SubMessageBody{
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    
+
     public void debug_tock() {
         int turnFinal = Clock.getRoundNum();
         int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    }
+	public String toString() {
+		 return "MentalStateInfo\n"+		"robotID	:" + robotID +
+		"points	:" + points +
+		"testing	:" + testing +
+		"testing2	:" + testing2 +
+		"anotherInt	:" + anotherInt +
+		"test	:" + java.util.Arrays.toString(test) +
+		"testing3	:" + java.util.Arrays.toString(testing3) +
+		"testing4	:" + java.util.Arrays.toString(testing4) +
+		"boolArray	:" + java.util.Arrays.toString(boolArray) +
+		"ints	:" + java.util.Arrays.toString(ints);
+	}
+}

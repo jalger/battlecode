@@ -111,11 +111,19 @@ public class MapAreaInfo extends SubMessageBody{
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    
+
     public void debug_tock() {
         int turnFinal = Clock.getRoundNum();
         int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    }
+	public String toString() {
+		 return "MapAreaInfo\n"+		"groundTraversable	:" + groundTraversable +
+		"visited	:" + visited +
+		"left	:" + left +
+		"top	:" + top +
+		"right	:" + right +
+		"bottom	:" + bottom;
+	}
+}

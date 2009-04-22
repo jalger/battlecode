@@ -1,7 +1,4 @@
 package teamJA_ND.comm;
-import teamJA_ND.util.Assert;
-import java.util.Map;
-import java.util.HashMap;
 
 
 public abstract class SubMessageBody implements Transferable<SubMessageBody>

@@ -25,14 +25,15 @@ public class FringeInfo extends SubMessageBody{
 	public int getID() { return ID; }
 
 	public void toIntArray(int[] array, int offset) {
-	    array[offset] = getLength();
+		array[offset] = getLength();
         array[++offset] = ID;
         array[++offset] = directionIndex;
         array[++offset] = groundTraversable.length;
         for (int i = 0; i < groundTraversable.length; i++) {
-        	array[++offset] = groundTraversable[i] ? 1 : 0;
+            array[++offset] = groundTraversable[i] ? 1 : 0;
         }
-	}
+    }
+	
 	public FringeInfo fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
 		int directionIndex = array[counter+0];
@@ -56,11 +57,15 @@ public class FringeInfo extends SubMessageBody{
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    
+
     public void debug_tock() {
         int turnFinal = Clock.getRoundNum();
         int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    }
+	public String toString() {
+		 return "FringeInfo\n"+		"directionIndex	:" + directionIndex +
+		"groundTraversable	:" + java.util.Arrays.toString(groundTraversable);
+	}
+}

@@ -54,11 +54,16 @@ public class MoveToCommand extends SubMessageBody{
         clockTurnNum = Clock.getRoundNum();
         clockByteNum = Clock.getBytecodeNum();
     }
-    
+
     public void debug_tock() {
         int turnFinal = Clock.getRoundNum();
         int bytesFinal = Clock.getBytecodeNum() - 1; //The -1 accounts for the cost of calling debug_tock().
         int delta = bytesFinal - clockByteNum + BYTES_PER_ROUND*(turnFinal - clockTurnNum);
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
-    }
+	public String toString() {
+		 return "MoveToCommand\n"+		"x	:" + x +
+		"y	:" + y +
+		"absolute	:" + absolute;
+	}
+}

@@ -113,7 +113,8 @@ class Variable:
     def __repr__(self):
         return self.scope + " " + self.type + " " + self.name + ";"
     
-   
+    def toString(self):
+        return self.implementation.toString()
 	    
 
 class VariableImplementation:
@@ -123,7 +124,8 @@ class VariableImplementation:
     def type(self):
         return None
     
-        
+    def toString(self):
+        return "\"" + self.name +"\t:\" + " + self.name
     
     # By default, do not need an import statement
     def neededImport(self):
@@ -243,6 +245,10 @@ class OneDArray(Array):
     def __init__(self, varImpl, name = "arrayType"):
         self.variable = varImpl     
         self.name = name 
+
+    def toString(self):
+        return "\"" + self.name +"\t:\" + java.util.Arrays.toString(" + self.name + ")"
+
 
     def numIntsToRepresent(self):
         return "1 + (" + self.variable.numIntsToRepresent() + " * " + self.name + ".length)"

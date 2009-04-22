@@ -1,10 +1,9 @@
 package teamJA_ND.comm;
 
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.Clock;
 import teamJA_ND.KnowledgeBase;
 import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.MapLocation;
 
 /**
 * Represents miscellaneous information that must be transfered along
