@@ -48,6 +48,7 @@ public class DefaultRobot implements Runnable {
     protected Vector<SubMessage> queuedMessages;
     protected List<SubMessage> myNextMessageList;
     protected KnowledgeBase kb;
+    protected Team myTeam;
 
 
     public DefaultRobot(RobotController rcIn) {
@@ -61,6 +62,7 @@ public class DefaultRobot implements Runnable {
         moveCooldown = 0;
         attackCooldown--;
         myHeight = rc.getRobot().getRobotLevel();
+        myTeam = rc.getTeam();
     }
 
     public void run() {
@@ -83,10 +85,12 @@ public class DefaultRobot implements Runnable {
                 bytecodesReserved = 200;
                 MapLocation towers[] = rc.senseAlliedTowers();
                 myMap = new Map(towers[0].getX(), towers[0].getY());
+                kb = new KnowledgeBase(myMap);
                 if (!(rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]) || rc.getLocation().add(Direction.EAST).equals(towers[0])))
                     //if (!rc.getLocation().add(Direction.NORTH).equals(towers[0]))
                         rc.suicide();
 
+                startTurn();
                 x = rc.getLocation().getX();
                 y = rc. getLocation().getY();
                 
@@ -131,6 +135,10 @@ public class DefaultRobot implements Runnable {
     }
 
     protected void startTurn() {
+        //Initialize data structures to be renewed each turn
+        myNextMessageList = new LinkedList<SubMessage>();
+        kb.resetRobotKnowledge();
+
         Message[] temp = rc.getAllMessages();
         queuedMessages = new Vector<SubMessage>();
         if (temp.length != 0) {
@@ -146,7 +154,37 @@ public class DefaultRobot implements Runnable {
             //And now parse messages as necessary.
         }
 
-        myNextMessageList = new LinkedList<SubMessage>();
+        System.out.println("Checking robots.");
+        debug_tick();
+
+        Robot[] nearby = rc.senseNearbyGroundRobots();
+        debug_tock();
+        for (int i = 0; i < nearby.length; i++) {
+            Robot current = nearby[i];
+            try {
+                RobotInfo currentI = rc.senseRobotInfo(current);
+                if (currentI.team == myTeam)
+                    kb.addFriendlyGroundRobot(currentI);
+                else
+                    kb.addEnemyGroundRobot(currentI);
+            } catch (Exception e) {e.printStackTrace();}
+        }
+        debug_tock();
+        nearby = rc.senseNearbyAirRobots();
+        debug_tock();
+        for (int i = 0; i < nearby.length; i++) {
+            Robot current = nearby[i];
+            try {
+                RobotInfo currentI = rc.senseRobotInfo(current);
+                if (currentI.team == myTeam)
+                    kb.addFriendlyAirRobot(currentI);
+                else
+                    kb.addEnemyAirRobot(currentI);
+            } catch (Exception e) {e.printStackTrace();}
+        }
+
+        debug_tock();
+
     }
 
     protected void messageConvert(Vector<Point> myPath) {
