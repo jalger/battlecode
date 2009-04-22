@@ -8,14 +8,19 @@ package teamJA_ND;
  *
  * @author J.J. Alger
  */
-import teamJA_ND.State;
-import java.util.Vector;
 import java.util.PriorityQueue;
 import java.util.Stack;
+import java.util.Vector;
 
-import teamJA_ND.*;
-import teamJA_ND.util.*;
-import battlecode.common.*;
+import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.Direction;
+import battlecode.common.GameConstants;
+import battlecode.common.MapLocation;
+import battlecode.common.Robot;
+import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
+import battlecode.common.RobotLevel;
 
 
 public class Move extends State {

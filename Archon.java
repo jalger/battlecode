@@ -8,7 +8,8 @@ package teamJA_ND;
  *
  * @author J.J. Alger, Nick Dunn
  */
-import battlecode.common.*;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 
 public class Archon extends DefaultRobot {
 

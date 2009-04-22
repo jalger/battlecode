@@ -8,14 +8,18 @@ package teamJA_ND;
  *
  * @author J.J. Alger, Nick Dunn
  */
-import battlecode.common.*;
-import java.util.ArrayList;
-import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.Vector;
-import teamJA_ND.comm.*;
-import teamJA_ND.state.*;
-import teamJA_ND.util.*;
+
+import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.Direction;
+import battlecode.common.MapLocation;
+import battlecode.common.Robot;
+import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
+import battlecode.common.RobotType;
+import battlecode.common.TerrainTile;
 
 public class DefaultRobot implements Runnable {
 

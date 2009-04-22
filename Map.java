@@ -8,14 +8,14 @@ package teamJA_ND;
  *
  * @author J.J. Alger
  */
-import battlecode.common.*;
-import java.util.Stack;
 import java.util.PriorityQueue;
+import java.util.Stack;
 import java.util.Vector;
 
-import teamJA_ND.comm.*;
-import teamJA_ND.state.*;
-import teamJA_ND.util.*;
+import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.GameConstants;
+import battlecode.common.MapLocation;
 
 public class Map {
 
