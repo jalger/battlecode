@@ -77,7 +77,7 @@ public class DefaultRobot implements Runnable {
                 bytecodesReserved = 200;
                 MapLocation towers[] = rc.senseAlliedTowers();
                 myMap = new Map(towers[0].getX(), towers[0].getY());
-                if (!rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]))
+                if (!(rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]) || rc.getLocation().add(Direction.EAST).equals(towers[0])))
                     //if (!rc.getLocation().add(Direction.NORTH).equals(towers[0]))
                         rc.suicide();
 
@@ -92,31 +92,21 @@ public class DefaultRobot implements Runnable {
                             updateMapSquare(loc);
                     }
                 }
-        while (true) {
+        //while (true) {
             try {
                 /*** beginning of main loop ***/
-                while (rc.isMovementActive()) {
-                    rc.yield();
-                }
-
-                if(rc.canMove(rc.getDirection())) {
-                    moveForward();
-                }
-                else {
-                    rc.setDirection(rc.getDirection().rotateRight());
-                    rc.yield();
-                }
-
                 rc.yield();
                 State myState;
-                if (rc.getLocation().getX() != towers[0].getX()) {
-                    myState = (State) (new Move(myMap, rc, this).setGoal(new Point(x + myMap.dx + 33,y + myMap.dy + 0)));
+                MapLocation[] allyLocs = rc.senseAlliedArchons();
+                MapLocation allyLoc = allyLocs[0];
+                int myNumber = 0;
+                if (rc.getLocation().equals(allyLocs[0])) {
+                    allyLoc = allyLocs[1];
+                }
+                Robot ally = rc.senseGroundRobotAtLocation(allyLoc);
+                if (rc.getLocation().getY() != towers[0].getY()) {
+                    myState = (State) (new Move(myMap, rc, this).setGoal(new Point(x + myMap.dx + 33,y + myMap.dy + 0)).addFollower(ally));
                 } else {
-                    MapLocation[] allyLocs = rc.senseAlliedArchons();
-                    MapLocation allyLoc = allyLocs[0];
-                    if (rc.getLocation().equals(allyLoc))
-                        allyLoc = allyLocs[1];
-                    Robot ally = rc.senseGroundRobotAtLocation(allyLoc);
                     myState = (State) (new Move(myMap, rc, this).setFollowing(ally, new Point(0,1)));
                 }
                 myState.onEnter();
@@ -130,7 +120,7 @@ public class DefaultRobot implements Runnable {
                 System.out.println("caught exception:");
                 e.printStackTrace();
             }
-        }
+        //}
     }
 
     protected void messageConvert(Vector<Point> myPath) {

@@ -68,6 +68,7 @@ public class Move extends State {
 
     //Private variables for following mode
     Robot leader;
+    Vector<Robot> followers;
     Point preferredDisplacement;
 
     //Private variables to speed up access to some frequently-callled methods and whatnot.
@@ -99,6 +100,7 @@ public class Move extends State {
         directions[N_SE] = new Point(1, 1);
         directions[N_E] = new Point(1, 0);
         directions[N_NE] = new Point(1, -1);
+        followers = new Vector<Robot>();
     }
 
     public Move(Map mapIn, RobotController rcIn, DefaultRobot controller) {
@@ -114,6 +116,7 @@ public class Move extends State {
         directions[N_SE] = new Point(1, 1);
         directions[N_E] = new Point(1, 0);
         directions[N_NE] = new Point(1, -1);
+        followers = new Vector<Robot>();
     }
 
     public Move setGoal(Point goalIn) {
@@ -124,27 +127,36 @@ public class Move extends State {
         return this;
     }
 
-    public Move setFollowing(Robot friend, Point displacement) {
+    public Move setFollowing(Robot friendToFollow, Point displacement) {
         pathfinding = false;
         following = true;
-        Point preferredDisplacement = displacement;
-        Robot leader = friend;
+        preferredDisplacement = displacement;
+        leader = friendToFollow;
+        return this;
+    }
+
+    public Move addFollower(Robot friend) {
+        followers.add(friend);
         return this;
     }
 
     public void onEnter() {
-        myPath = new Vector<Point>();
+        System.out.println(following);
         currDirIndex = direcToPointIndex(rc.getDirection());
         airMoveRate = 0;
         groundMoveRate = rc.getRobotType().moveDelayDiagonal();
-        pathfindingStage = TANGENT_BUG_STAGE;
         virtualBugs = new PriorityQueue<VirtualBugLocation>();
+        bestBug = null;
         MapLocation temp = rc.getLocation();
         x0 = temp.getX() + myMap.getdx();
         y0 = temp.getY() + myMap.getdy();
         tracingStarted = false;
         resetPath();
         flying = rc.getRobot().getRobotLevel() == RobotLevel.IN_AIR;
+        if (!following)
+            debug_warn("Moving to: " + goal.x + ", " + goal.y);
+        else
+            debug_warn("Following robot: " + leader.getID() + "; displacement: " + preferredDisplacement.x + ", " + preferredDisplacement.y);
     }
 
     public void update() {
@@ -173,6 +185,11 @@ public class Move extends State {
     private void advance() {
         if (pathfinding) {
             if (myPath.size() == 0) {
+                if (pathfindingStage == FINISHED_STAGE) {
+                    debug_warn("Done moving. Current location: " + x0 + ", " + y0);
+                    finishedMoving = true;
+                    return;
+                }
                 if (goal.x != x0 || goal.y != y0) {
                     int n_preferred = deadReckonIndex(x0, y0, goal.x, goal.y);
                     Direction next = pointToDirec(directions[n_preferred]);
@@ -193,7 +210,7 @@ public class Move extends State {
             int preferred_direc_index = deadReckonIndex(x0, y0, tempGoal.x, tempGoal.y);
 
             step(preferred_direc_index);
-
+            
             if (tempGoal.x == x0 &&
                     tempGoal.y == y0) {
                 myPath.remove(0);
@@ -221,8 +238,8 @@ public class Move extends State {
                 RobotInfo leaderInfo = rc.senseRobotInfo(leader);
                 leaderLoc = leaderInfo.location;
             } catch (Exception e) {}
-            int dx = x0 - myMap.dx - leaderLoc.getX() - preferredDisplacement.x;
-            int dy = y0 - myMap.dy - leaderLoc.getY() - preferredDisplacement.y;
+            int dx = -(x0 - myMap.dx - leaderLoc.getX() - preferredDisplacement.x);
+            int dy = -(y0 - myMap.dy - leaderLoc.getY() - preferredDisplacement.y);
             if (dx == 0 && dy == 0)
                 return;
 
@@ -232,6 +249,7 @@ public class Move extends State {
     }
 
     private int getFollowingDirecIndex(int dx, int dy) {
+        debug_warn("Leader displaced by: " + dx + ", " + dy);
         int n_preferred = deadReckonIndex(x0, y0, x0 + dx, y0 + dy);
         Direction next = pointToDirec(directions[n_preferred]);
         if (rc.canMove(next))
@@ -352,10 +370,6 @@ public class Move extends State {
                     rc.moveForward();
                     x0 += directions[direcIndex].x;
                     y0 += directions[direcIndex].y;
-
-                    if (pathfindingStage == FINISHED_STAGE && bestBug != null && x0 == bestBug.x && y0 == bestBug.y)
-                        finishedMoving = true;
-
                     return;
                 } catch (Exception e) {}
         }
@@ -383,6 +397,7 @@ public class Move extends State {
 
         if (interferer != null) {
             //Broadcast a message instructing them to get out of my way.
+            
         }
         else {
             debug_warn("Warning: Blocked passage, but no robot in the way. Probable error in map or expected robot location.");
@@ -390,6 +405,7 @@ public class Move extends State {
             debug_warn("Location: " + x0 + ", " + y0);
             debug_warn("Current robot direction: " + direcToPointIndex(rc.getDirection()));
             debug_warn("Updating position by: " + directions[direcIndex].x + ", " + directions[direcIndex].y);
+            myMap.debug_printMap();
         }
     }
 
@@ -537,6 +553,18 @@ public class Move extends State {
     }
 
     private boolean teammatesInPlace() {
+        for (int i = 0; i < followers.size(); i++) {
+            Robot current = followers.get(i);
+            int dSquared = Integer.MAX_VALUE;
+            try {
+                if (rc.canSenseObject(current)) {
+                    RobotInfo currentI = rc.senseRobotInfo(current);
+                    dSquared = rc.getLocation().distanceSquaredTo(currentI.location);
+                }
+            } catch (Exception e) {}
+            if (dSquared > 9)
+                return false;
+        }
         return true;
     }
 
@@ -545,6 +573,7 @@ public class Move extends State {
         myPath = new Vector<Point>();
         myPath.add(new Point(x0, y0));
         finishedMoving = false;
+        debug_warn("Resetting path.");
     }
 
     private void updateAdvanceToWall() {
@@ -573,6 +602,12 @@ public class Move extends State {
         //Goal reached by dead reckoning alone! Simply add goal, and stop
         //pathfinding.
         if (xCurr == goal.x && yCurr == goal.y) {
+            debug_warn("Reached goal in advanceToWall. Current loc: " + x0 + ", " + y0);
+            if (!myMap.groundPassableArrayCoords(xCurr, yCurr)) {
+                xCurr -= directions[n_preferred].x;
+                yCurr -= directions[n_preferred].y;
+                bestBug = new VirtualBugLocation(xCurr, yCurr, 0);
+            }
             myPath.add(new Point(xCurr, yCurr));
             pathfindingStage = FINISHED_STAGE;
             idle = true;
@@ -682,8 +717,11 @@ public class Move extends State {
             } else {
                 pathfindingStage = PATH_CONSTRUCTION_STAGE;
                 currentStageInProgress = false;
-                if (bestBug == null)
+                if (bestBug == null) {
                     bestBug = closestBug;
+                    debug_warn("Unreachable goal");
+                    debug_warn("Best location: " + closestBug.x + ", " + closestBug.y);
+                }
             }
         }
     }
