@@ -61,6 +61,14 @@ public class Move extends State {
     protected int lastCertainWaypoint, waypointToSkipTo;
 
     //Private variables for moving along the given path
+    protected boolean flying;
+    protected boolean pathfinding;
+    protected boolean following;
+    protected boolean idle;
+
+    //Private variables for following mode
+    Robot leader;
+    Point preferredDisplacement;
 
     //Private variables to speed up access to some frequently-callled methods and whatnot.
     protected KnowledgeBase myKnowledge;
@@ -76,6 +84,7 @@ public class Move extends State {
     protected int pathfindingStage;
     protected DefaultRobot brains;
     protected boolean currentStageInProgress;
+    protected boolean finishedMoving;
 
     public Move(KnowledgeBase kbIn, RobotController rcIn, DefaultRobot controller) {
         myKnowledge = kbIn;
@@ -108,7 +117,18 @@ public class Move extends State {
     }
 
     public Move setGoal(Point goalIn) {
+        pathfinding = true;
+        following = false;
+        resetPath();
         goal = goalIn;
+        return this;
+    }
+
+    public Move setFollowing(Robot friend, Point displacement) {
+        pathfinding = false;
+        following = true;
+        Point preferredDisplacement = displacement;
+        Robot leader = friend;
         return this;
     }
 
@@ -124,6 +144,7 @@ public class Move extends State {
         y0 = temp.getY() + myMap.getdy();
         tracingStarted = false;
         resetPath();
+        flying = rc.getRobot().getRobotLevel() == RobotLevel.IN_AIR;
     }
 
     public void update() {
@@ -132,66 +153,243 @@ public class Move extends State {
             currentRound = Clock.getRoundNum();
         } else {
             return; //This update method does not support parallel work with
-        }                    //other states, as it's too dangerous. Update can be called
-        //only once per turn.
+        }           //other states, as it's too dangerous. Update can be called
+                    //only once per turn.
 
+        if (finishedMoving)
+            return;
+        
         advance(); //Handles moving the robot towards
-        //the next point on its myPath vector.
-        compute(); //Works on constructing/improving myPath vector
+                   //the next point on its myPath vector.
+        if (pathfinding)
+            compute(); //Works on constructing/improving myPath vector
     }
 
     public void onExit() {
+
     }
 
     //Note bytecode-safe. Should be called near start of turn.
     private void advance() {
-        if (myPath.size() == 0) {
-            return;
-        }
-
-        Point tempGoal = myPath.get(0);
-        int preferred_direc_index = deadReckonIndex(x0, y0, tempGoal.x, tempGoal.y);
-
-        if (currDirIndex != preferred_direc_index && rc.getRoundsUntilMovementIdle() == 0) {
-            System.out.println("Orienting.");
-            try {
-                rc.setDirection(pointToDirec(directions[preferred_direc_index]));
-                currDirIndex = preferred_direc_index;
-            } catch (Exception e) {
-                System.out.println(e.toString());
-            }
-            return;
-        }
-
-        if (readyToMove()) {
-            System.out.println("Moving.");
-            debug_printMyPath();
-            try {
-                int xNext = x0 + directions[preferred_direc_index].x;
-                int yNext = y0 + directions[preferred_direc_index].y;
-                rc.moveForward();
-                x0 = xNext; //Technically, not yet. But true as soon as rc.yield() is called.
-                y0 = yNext; //The same here.
-                if (tempGoal.x == xNext &&
-                        tempGoal.y == yNext) {
-                    myPath.remove(0);
-                }
-
-                //Make sure the robot's path is still clear
-                //This should allow the robot to have at least 5 turns of advance
-                //warning to recompute the path if
-                //there is a barrier in the way.
-                if (myPath.size() > 0) {
-                    tempGoal = myPath.get(0);
-                    preferred_direc_index = deadReckonIndex(xNext, yNext, tempGoal.x, tempGoal.y);
-                    xNext += directions[preferred_direc_index].x;
-                    yNext += directions[preferred_direc_index].y;
-                    if (!myMap.groundPassableArrayCoords(xNext, yNext)) {
-                        resetPath();
+        if (pathfinding) {
+            if (myPath.size() == 0) {
+                if (goal.x != x0 || goal.y != y0) {
+                    int n_preferred = deadReckonIndex(x0, y0, goal.x, goal.y);
+                    Direction next = pointToDirec(directions[n_preferred]);
+                    if (rc.canMove(next)) {
+                        step(n_preferred);
                     }
                 }
-            } catch (Exception e) {
+                return;
             }
+
+            Point tempGoal = myPath.get(0);
+            if (x0 == tempGoal.x && y0 == tempGoal.y) {
+                myPath.remove(0);
+                advance();
+                return;
+            }
+
+            int preferred_direc_index = deadReckonIndex(x0, y0, tempGoal.x, tempGoal.y);
+
+            step(preferred_direc_index);
+
+            if (tempGoal.x == x0 &&
+                    tempGoal.y == y0) {
+                myPath.remove(0);
+            }
+
+            //Make sure the robot's path is still clear
+            //This should allow the robot to have at least 5 turns of advance
+            //warning to recompute the path if
+            //there is a barrier in the way.
+            if (myPath.size() > 0) {
+                tempGoal = myPath.get(0);
+                preferred_direc_index = deadReckonIndex(x0, y0, tempGoal.x, tempGoal.y);
+                int xNext = x0 + directions[preferred_direc_index].x;
+                int yNext = y0 + directions[preferred_direc_index].y;
+                if (!myMap.groundPassableArrayCoords(xNext, yNext)) {
+                    resetPath();
+                }
+            }
+        }
+        else if (following) {
+            if (rc.getRoundsUntilMovementIdle() != 0)
+                    return;
+            MapLocation leaderLoc = rc.getLocation();
+            try {
+                RobotInfo leaderInfo = rc.senseRobotInfo(leader);
+                leaderLoc = leaderInfo.location;
+            } catch (Exception e) {}
+            int dx = x0 - myMap.dx - leaderLoc.getX() - preferredDisplacement.x;
+            int dy = y0 - myMap.dy - leaderLoc.getY() - preferredDisplacement.y;
+            if (dx == 0 && dy == 0)
+                return;
+
+            int n_preferred = getFollowingDirecIndex(dx, dy);
+            step(n_preferred);
+        }
+    }
+
+    private int getFollowingDirecIndex(int dx, int dy) {
+        int n_preferred = deadReckonIndex(x0, y0, x0 + dx, y0 + dy);
+        Direction next = pointToDirec(directions[n_preferred]);
+        if (rc.canMove(next))
+            return n_preferred;
+        int xNext = x0 + directions[n_preferred].x;
+        int yNext = y0 + directions[n_preferred].y;
+
+        //Check for a map obstruction causing blockage
+        if (!flying && !myMap.groundPassableArrayCoords(xNext, yNext)) {
+            n_preferred = rotateForBestClear(n_preferred, dx, dy);
+            next = pointToDirec(directions[n_preferred]);
+            if (rc.canMove(next)) {
+                return n_preferred;
+            }
+        }
+
+        //Check in-bounds
+        if (myMap.xMax <= x0 + dx || myMap.xMin >= x0 + dx||
+            myMap.yMax <= y0 + dy || myMap.yMin >= y0 + dy) {
+            debug_warn("Group trying to leave map! This behavior should not occur.");
+            n_preferred = rotateForBestClear(n_preferred, dx, dy);
+            next = pointToDirec(directions[n_preferred]);
+            if (rc.canMove(next))
+                return n_preferred;
+        }
+
+        //Should be a robot in the way then. What behavior to undertake then?
+        n_preferred = rotateForBestMovableClear(n_preferred, dx, dy);
+        return n_preferred;
+
+    }
+
+    public int rotateForBestClear(int n_preferred, int dx, int dy) {
+
+            int rightTurningIndex = n_preferred;
+            int xNext = x0 + directions[rightTurningIndex].x;
+            int yNext = y0 + directions[rightTurningIndex].y;
+
+            while (!myMap.groundPassableArrayCoords(xNext, yNext)) {
+                rightTurningIndex = rotateRightIndex(rightTurningIndex);
+                xNext = x0 + directions[rightTurningIndex].x;
+                yNext = y0 + directions[rightTurningIndex].y;
+            }
+            int leftTurningIndex = n_preferred;
+            xNext = x0 + directions[leftTurningIndex].x;
+            yNext = y0 + directions[leftTurningIndex].y;
+            while (!myMap.groundPassableArrayCoords(xNext, yNext)) {
+                leftTurningIndex = rotateLeftIndex(leftTurningIndex);
+                xNext = x0 + directions[leftTurningIndex].x;
+                yNext = y0 + directions[leftTurningIndex].y;
+            }
+            double leftD = estimateDistance(dx, dy, directions[leftTurningIndex].x, directions[leftTurningIndex].y);
+            double rightD = estimateDistance(dx, dy, directions[rightTurningIndex].y, directions[rightTurningIndex].y);
+            if (leftD < rightD) {
+                n_preferred = leftTurningIndex;
+            } else {
+                n_preferred = rightTurningIndex;
+            }
+
+            return n_preferred;
+    }
+
+    public int rotateForBestMovableClear(int n_preferred, int dx, int dy) {
+
+            int rightTurningIndex = n_preferred;
+
+            Direction next = pointToDirec(directions[rightTurningIndex]);
+            int counter = 8;
+            while (!rc.canMove(next) && counter != 0) {
+                rightTurningIndex = rotateRightIndex(rightTurningIndex);
+                next = pointToDirec(directions[rightTurningIndex]);
+                counter--;
+            }
+            int leftTurningIndex = n_preferred;
+            next = pointToDirec(directions[leftTurningIndex]);
+            counter = 8;
+            while (!rc.canMove(next) && counter != 0) {
+                rightTurningIndex = rotateRightIndex(rightTurningIndex);
+                next = pointToDirec(directions[rightTurningIndex]);
+                counter--;
+            }
+            double leftD = estimateDistance(dx, dy, directions[leftTurningIndex].x, directions[leftTurningIndex].y);
+            double rightD = estimateDistance(dx, dy, directions[rightTurningIndex].y, directions[rightTurningIndex].y);
+            if (leftD < rightD) {
+                n_preferred = leftTurningIndex;
+            } else {
+                n_preferred = rightTurningIndex;
+            }
+            return n_preferred;
+    }
+
+    private void step(int direcIndex) {
+        //Wait if necessary before rotating
+        if (rc.getRoundsUntilMovementIdle() != 0)
+            return;
+
+        //Rotate if necessary
+        if (!(direcIndex == currDirIndex || oppositeIndex(direcIndex) == currDirIndex)) {
+            try {
+                Direction next = pointToDirec(directions[direcIndex]);
+                rc.setDirection(next);
+                currDirIndex = direcIndex;
+            } catch (Exception e) {}
+            return;
+        }
+
+        //Wait if necessary before moving
+        if (!readyToMove())
+            return;
+
+        Direction next = rc.getDirection();
+
+        //Move forward if able
+        if (currDirIndex == direcIndex) {
+            next = pointToDirec(directions[direcIndex]);
+            if (rc.canMove(next))
+                try {
+                    rc.moveForward();
+                    x0 += directions[direcIndex].x;
+                    y0 += directions[direcIndex].y;
+
+                    if (pathfindingStage == FINISHED_STAGE && bestBug != null && x0 == bestBug.x && y0 == bestBug.y)
+                        finishedMoving = true;
+
+                    return;
+                } catch (Exception e) {}
+        }
+
+        //Move backwards if able
+        if (oppositeIndex(direcIndex) == currDirIndex) {
+            next = pointToDirec(directions[direcIndex]).opposite();
+            if (rc.canMove(next))
+                try {
+                    rc.moveBackward();
+                    x0 -= directions[direcIndex].x;
+                    y0 -= directions[direcIndex].y;
+                    return;
+                } catch (Exception e) {}
+        }
+
+        //Something is in the way.
+        Robot interferer = null;
+        try {
+            if (flying)
+                interferer = rc.senseAirRobotAtLocation(rc.getLocation().add(next));
+            else
+                interferer = rc.senseGroundRobotAtLocation(rc.getLocation().add(next));
+        } catch (Exception e) {}
+
+        if (interferer != null) {
+            //Broadcast a message instructing them to get out of my way.
+        }
+        else {
+            debug_warn("Warning: Blocked passage, but no robot in the way. Probable error in map or expected robot location.");
+            debug_warn("Direction index: " + direcIndex);
+            debug_warn("Location: " + x0 + ", " + y0);
+            debug_warn("Current robot direction: " + direcToPointIndex(rc.getDirection()));
+            debug_warn("Updating position by: " + directions[direcIndex].x + ", " + directions[direcIndex].y);
         }
     }
 
@@ -333,17 +531,23 @@ public class Move extends State {
     }
 
     private boolean readyToMove() {
-        return (rc.getRoundsUntilMovementIdle() == 0);
+        if (rc.getRoundsUntilMovementIdle() != 0)
+            return false;
+        return teammatesInPlace();
+    }
+
+    private boolean teammatesInPlace() {
+        return true;
     }
 
     private void resetPath() {
         pathfindingStage = ADVANCE_TO_FIRST_WALL_STAGE;
         myPath = new Vector<Point>();
         myPath.add(new Point(x0, y0));
+        finishedMoving = false;
     }
 
     private void updateAdvanceToWall() {
-        debug_warn("Advancing to wall.");
         int xCurr = x0;
         int yCurr = y0;
         //By experimentation, 400 bytecodes is a generous assumption about the
@@ -371,6 +575,7 @@ public class Move extends State {
         if (xCurr == goal.x && yCurr == goal.y) {
             myPath.add(new Point(xCurr, yCurr));
             pathfindingStage = FINISHED_STAGE;
+            idle = true;
             return;
         }
         //Reached first barrier. Switch to tangentBug portion of
@@ -405,6 +610,7 @@ public class Move extends State {
             int n_preferred = deadReckonIndex(temp.x, temp.y, goal.x, goal.y);
             int xTemp = temp.x + directions[n_preferred].x;
             int yTemp = temp.y + directions[n_preferred].y;
+            System.out.println(x0 + ", " + y0 + ", " + temp.x + ", " + temp.y + ", " + xTemp + ", " + yTemp + ", " + goal.x + ", " + goal.y);
             if (myMap.groundPassableArrayCoords(xTemp, yTemp)) {
                 debug_warn("Tangent called, but not on a wall. Returning to free-moving...");
                 pathfindingStage = ADVANCE_TO_FIRST_WALL_STAGE;
@@ -425,6 +631,7 @@ public class Move extends State {
             bestBug = null;
             maxCost = Math.min(MAX_COST, 4*estimateDistance(currentBug.x, currentBug.y, goal.x, goal.y));
         }
+
         int bytecodeCutoff = GameConstants.BYTECODES_PER_ROUND - brains.getBytecodesReserved() - 300;
         if (Clock.getBytecodeNum() < bytecodeCutoff && currentBug.d < maxCost) {
             if (!tracingDone)
@@ -451,6 +658,7 @@ public class Move extends State {
                 //And set up for the next bug...
                 //There are no bugs left; go with the best so far
                 if (virtualBugs.isEmpty()) {
+                    System.out.println("Done tangentBugging");
                     pathfindingStage = PATH_CONSTRUCTION_STAGE;
                     currentStageInProgress = false;
                     //Goal not reached within distance limit; this is the closest.
@@ -458,6 +666,7 @@ public class Move extends State {
                         bestBug = closestBug;
                     }
                 } else {
+                    System.out.println("New bug");
                 //Set up next virtual bug for checking...
                     currentBug = virtualBugs.poll();
                     tracingDone = false;
@@ -615,9 +824,7 @@ public class Move extends State {
                 }
                 if (rotationCounter != 0) {
                     Point temp = new Point(current.x, current.y);
-                    System.out.println(rotationCounter);
-                    if (!temp.equals(myPath.lastElement()))
-                        appendee.add(new Point(current.x, current.y));
+                    appendee.add(new Point(current.x, current.y));
                 }
                 current.move(directions[previousTracingDirec]);
             }
@@ -664,6 +871,7 @@ public class Move extends State {
             //This would mean that no bugs were used. This should never happen.
             debug_warn("Failed to create bugs before going to updatePathConstruction.");
             resetPath();
+            return;
         }
         VirtualBugLocation temp = bestBug;
         sparsePath.push(temp);
@@ -729,7 +937,6 @@ public class Move extends State {
         }
         Point end = myPath.elementAt(waypointToSkipTo);
         boolean skippable = myMap.clearPath(start, end);
-        System.out.println(skippable + ", " + lastCertainWaypoint + ", " + waypointToSkipTo);
         --waypointToSkipTo;
         if (skippable) {
             while (waypointToSkipTo > lastCertainWaypoint) {
@@ -742,12 +949,10 @@ public class Move extends State {
             if (lastCertainWaypoint > myPath.size() - 3) {
                 pathfindingStage = FINISHED_STAGE;
                 currentStageInProgress = false;
-                debug_printMyPath();
                 return;
             }
             waypointToSkipTo = myPath.size() - 1;
         }
-
     }
 
     public double estimateDistance(int xI, int yI, int x1, int y1) {
