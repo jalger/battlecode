@@ -16,6 +16,8 @@ import java.util.Vector;
 import teamJA_ND.comm.*;
 import teamJA_ND.state.*;
 import teamJA_ND.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultRobot implements Runnable {
 
@@ -42,6 +44,10 @@ public class DefaultRobot implements Runnable {
     protected int clockTurnNum;
     protected int clockByteNum;
     protected int bytecodesReserved;
+
+    protected Vector<SubMessage> queuedMessages;
+    protected List<SubMessage> myNextMessageList;
+    protected KnowledgeBase kb;
 
 
     public DefaultRobot(RobotController rcIn) {
@@ -111,6 +117,7 @@ public class DefaultRobot implements Runnable {
                 }
                 myState.onEnter();
                 while (true) {
+                    startTurn();
                     myState.update();
                     endTurn();
                 }
@@ -121,6 +128,25 @@ public class DefaultRobot implements Runnable {
                 e.printStackTrace();
             }
         //}
+    }
+
+    protected void startTurn() {
+        Message[] temp = rc.getAllMessages();
+        queuedMessages = new Vector<SubMessage>();
+        if (temp.length != 0) {
+            Message m;
+            for (int i = 0; i < temp.length; i++) {
+                m = temp[i];
+                List<SubMessage> smL = MessageUtil.getRelevantSubMessages(m, kb);
+                if (smL != null)
+                    while (smL.size() != 0) {
+                        queuedMessages.add(smL.remove(0));
+                    }
+            }
+            //And now parse messages as necessary.
+        }
+
+        myNextMessageList = new LinkedList<SubMessage>();
     }
 
     protected void messageConvert(Vector<Point> myPath) {
@@ -227,6 +253,10 @@ public class DefaultRobot implements Runnable {
     }
 
     protected void endTurn() {
+        if (myNextMessageList.size() > 0) {
+            Message m = MessageUtil.pack(myNextMessageList, rc.getLocation(), rc.getRobot().getID(), 0);
+            try {rc.broadcast(m);} catch (Exception e) {System.out.println("There was an error.");}
+        }
         rc.yield();
         x = rc.getLocation().getX();
         y = rc.getLocation().getY();

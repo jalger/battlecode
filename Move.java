@@ -189,15 +189,11 @@ public class Move extends State {
 
     //Note bytecode-safe. Should be called near start of turn.
     private void advance() {
-        Message[] temp = rc.getAllMessages();
-        if (temp.length != 0) {
-            Message m = temp[0];
-            List<SubMessage> smL = MessageUtil.getRelevantSubMessages(m, myKnowledge);
-            if (smL != null) {
-                SubMessage sm = smL.get(0);
-                priorityMove = deadReckonIndex(x0, y0, x0-1, y0+1);
-                if (pathfinding)
-                    myPath.insertElementAt(new Point(x0, y0),0);
+        if (brains.queuedMessages.size() != 0) {
+            SubMessage sm = brains.queuedMessages.get(0);
+            priorityMove = deadReckonIndex(x0, y0, x0 - 1, y0 + 1);
+            if (pathfinding) {
+                myPath.insertElementAt(new Point(x0, y0), 0);
             }
         }
 
@@ -431,10 +427,7 @@ public class Move extends State {
             SubMessageBody b = new ShoveCommand(interferer.getID());
             SubMessageHeader h = new SubMessageHeader.Builder(rc.getLocation(), b.getLength()).build();
             SubMessage sm = new SubMessage(h,b);
-            List<SubMessage> temp = new LinkedList<SubMessage>();
-            temp.add(sm);
-            Message m = MessageUtil.pack(temp, rc.getLocation(), rc.getRobot().getID(), 0);
-            try {rc.broadcast(m);} catch (Exception e) {debug_warn("There was an error.");}
+            brains.myNextMessageList.add(sm);
         }
         else {
             debug_warn("Warning: Blocked passage, but no robot in the way. Probable error in map or expected robot location.");
