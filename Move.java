@@ -12,9 +12,12 @@ import teamJA_ND.State;
 import java.util.Vector;
 import java.util.PriorityQueue;
 import java.util.Stack;
+import java.util.LinkedList;
+import java.util.List;
 
 import teamJA_ND.*;
 import teamJA_ND.util.*;
+import teamJA_ND.comm.*;
 import battlecode.common.*;
 
 
@@ -65,6 +68,7 @@ public class Move extends State {
     protected boolean pathfinding;
     protected boolean following;
     protected boolean idle;
+    protected int priorityMove;
 
     //Private variables for following mode
     Robot leader;
@@ -86,6 +90,7 @@ public class Move extends State {
     protected DefaultRobot brains;
     protected boolean currentStageInProgress;
     protected boolean finishedMoving;
+    protected int counter;
 
     public Move(KnowledgeBase kbIn, RobotController rcIn, DefaultRobot controller) {
         myKnowledge = kbIn;
@@ -141,7 +146,8 @@ public class Move extends State {
     }
 
     public void onEnter() {
-        System.out.println(following);
+        counter = 0;
+        priorityMove = -1;
         currDirIndex = direcToPointIndex(rc.getDirection());
         airMoveRate = 0;
         groundMoveRate = rc.getRobotType().moveDelayDiagonal();
@@ -183,6 +189,27 @@ public class Move extends State {
 
     //Note bytecode-safe. Should be called near start of turn.
     private void advance() {
+        Message[] temp = rc.getAllMessages();
+        if (temp.length != 0) {
+            Message m = temp[0];
+            List<SubMessage> smL = MessageUtil.getRelevantSubMessages(m, myKnowledge);
+            if (smL != null) {
+                SubMessage sm = smL.get(0);
+                priorityMove = deadReckonIndex(x0, y0, x0-1, y0+1);
+                if (pathfinding)
+                    myPath.insertElementAt(new Point(x0, y0),0);
+            }
+        }
+
+        if (priorityMove != -1) {
+            int xOld = x0;
+            int yOld = y0;
+            step(priorityMove);
+            if (xOld != x0 || yOld != y0)
+                priorityMove = -1;
+            return;
+        }
+
         if (pathfinding) {
             if (myPath.size() == 0) {
                 if (pathfindingStage == FINISHED_STAGE) {
@@ -244,12 +271,12 @@ public class Move extends State {
                 return;
 
             int n_preferred = getFollowingDirecIndex(dx, dy);
-            step(n_preferred);
+            if (n_preferred != -1)
+                step(n_preferred);
         }
     }
 
     private int getFollowingDirecIndex(int dx, int dy) {
-        debug_warn("Leader displaced by: " + dx + ", " + dy);
         int n_preferred = deadReckonIndex(x0, y0, x0 + dx, y0 + dy);
         Direction next = pointToDirec(directions[n_preferred]);
         if (rc.canMove(next))
@@ -331,9 +358,12 @@ public class Move extends State {
                 next = pointToDirec(directions[rightTurningIndex]);
                 counter--;
             }
+            double currentD = estimateDistance(dx, dy, 0, 0);
             double leftD = estimateDistance(dx, dy, directions[leftTurningIndex].x, directions[leftTurningIndex].y);
             double rightD = estimateDistance(dx, dy, directions[rightTurningIndex].y, directions[rightTurningIndex].y);
-            if (leftD < rightD) {
+            if (currentD < leftD && currentD < rightD) {
+                n_preferred = -1;
+            } else if (leftD < rightD) {
                 n_preferred = leftTurningIndex;
             } else {
                 n_preferred = rightTurningIndex;
@@ -371,7 +401,7 @@ public class Move extends State {
                     x0 += directions[direcIndex].x;
                     y0 += directions[direcIndex].y;
                     return;
-                } catch (Exception e) {}
+                } catch (Exception e) { System.out.println("Error in movement.");}
         }
 
         //Move backwards if able
@@ -380,10 +410,10 @@ public class Move extends State {
             if (rc.canMove(next))
                 try {
                     rc.moveBackward();
-                    x0 -= directions[direcIndex].x;
-                    y0 -= directions[direcIndex].y;
+                    x0 += directions[direcIndex].x;
+                    y0 += directions[direcIndex].y;
                     return;
-                } catch (Exception e) {}
+                } catch (Exception e) { System.out.println("Error in movement.");}
         }
 
         //Something is in the way.
@@ -397,15 +427,25 @@ public class Move extends State {
 
         if (interferer != null) {
             //Broadcast a message instructing them to get out of my way.
-            
+
+            SubMessageBody b = new ShoveCommand(interferer.getID());
+            SubMessageHeader h = new SubMessageHeader.Builder(rc.getLocation(), b.getLength()).build();
+            SubMessage sm = new SubMessage(h,b);
+            List<SubMessage> temp = new LinkedList<SubMessage>();
+            temp.add(sm);
+            Message m = MessageUtil.pack(temp, rc.getLocation(), rc.getRobot().getID(), 0);
+            try {rc.broadcast(m);} catch (Exception e) {debug_warn("There was an error.");}
         }
         else {
             debug_warn("Warning: Blocked passage, but no robot in the way. Probable error in map or expected robot location.");
             debug_warn("Direction index: " + direcIndex);
             debug_warn("Location: " + x0 + ", " + y0);
+            debug_warn("Actual location: " + (rc.getLocation().getX() + myMap.getdx() + ", " + (rc.getLocation().getY() + myMap.getdy())));
             debug_warn("Current robot direction: " + direcToPointIndex(rc.getDirection()));
             debug_warn("Updating position by: " + directions[direcIndex].x + ", " + directions[direcIndex].y);
-            myMap.debug_printMap();
+            counter++;
+            if (counter > 3)
+                while(true){}
         }
     }
 
@@ -573,7 +613,6 @@ public class Move extends State {
         myPath = new Vector<Point>();
         myPath.add(new Point(x0, y0));
         finishedMoving = false;
-        debug_warn("Resetting path.");
     }
 
     private void updateAdvanceToWall() {
@@ -602,7 +641,6 @@ public class Move extends State {
         //Goal reached by dead reckoning alone! Simply add goal, and stop
         //pathfinding.
         if (xCurr == goal.x && yCurr == goal.y) {
-            debug_warn("Reached goal in advanceToWall. Current loc: " + x0 + ", " + y0);
             if (!myMap.groundPassableArrayCoords(xCurr, yCurr)) {
                 xCurr -= directions[n_preferred].x;
                 yCurr -= directions[n_preferred].y;
@@ -645,7 +683,6 @@ public class Move extends State {
             int n_preferred = deadReckonIndex(temp.x, temp.y, goal.x, goal.y);
             int xTemp = temp.x + directions[n_preferred].x;
             int yTemp = temp.y + directions[n_preferred].y;
-            System.out.println(x0 + ", " + y0 + ", " + temp.x + ", " + temp.y + ", " + xTemp + ", " + yTemp + ", " + goal.x + ", " + goal.y);
             if (myMap.groundPassableArrayCoords(xTemp, yTemp)) {
                 debug_warn("Tangent called, but not on a wall. Returning to free-moving...");
                 pathfindingStage = ADVANCE_TO_FIRST_WALL_STAGE;
@@ -693,7 +730,6 @@ public class Move extends State {
                 //And set up for the next bug...
                 //There are no bugs left; go with the best so far
                 if (virtualBugs.isEmpty()) {
-                    System.out.println("Done tangentBugging");
                     pathfindingStage = PATH_CONSTRUCTION_STAGE;
                     currentStageInProgress = false;
                     //Goal not reached within distance limit; this is the closest.
@@ -701,7 +737,6 @@ public class Move extends State {
                         bestBug = closestBug;
                     }
                 } else {
-                    System.out.println("New bug");
                 //Set up next virtual bug for checking...
                     currentBug = virtualBugs.poll();
                     tracingDone = false;
