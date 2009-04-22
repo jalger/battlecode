@@ -1,0 +1,4 @@
+CommandAcknowledgedInfo
+COMMAND_ACKNOWLEDGED
+private int commandingRobotID;
+private int commandID;

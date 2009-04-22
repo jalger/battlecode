@@ -1,0 +1,4 @@
+JoinGroupCommand
+JOIN_GROUP
+private int robotID;
+private int groupID;

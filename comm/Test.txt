@@ -1,0 +1,6 @@
+Test
+FRINGE
+Point[][] points;
+int[][] ints;
+MapLocation[][] mapLocs;
+boolean[][] booleans;

@@ -3,8 +3,6 @@ package teamJA_ND.comm;
 import java.util.HashMap;
 import java.util.Map;
 
-//import teamJA_ND.Action;
-
 
 /**
  * A Command object represents a command that a commander delegates to

@@ -3,51 +3,44 @@ package teamJA_ND.comm;
 
 import battlecode.common.Clock;
 
-public class MoveToCommand extends SubMessageBody{
-	private int x;
-	private int y;
-	private boolean absolute;
-	public static final int ID = SubMessageBody.MOVE_TO_ID;
-	public static final MoveToCommand PARSER = new MoveToCommand(0, 0, false);
+public class JoinGroupCommand extends SubMessageBody{
+	private int robotID;
+	private int groupID;
+	public static final int ID = SubMessageBody.JOIN_GROUP_ID;
+	public static final JoinGroupCommand PARSER = new JoinGroupCommand(0, 0);
 
     int clockTurnNum;
     int clockByteNum;
     final int BYTES_PER_ROUND = 6000;
     
 
-	public MoveToCommand (int x, int y, boolean absolute) {
-		this.x = x;
-		this.y = y;
-		this.absolute = absolute;
+	public JoinGroupCommand (int robotID, int groupID) {
+		this.robotID = robotID;
+		this.groupID = groupID;
 	}
 
 	public int getLength() {
-		return 5;
+		return 4;
 	}
 	public int getID() { return ID; }
 
 	public void toIntArray(int[] array, int offset) {
 		array[offset] = getLength();
 		array[offset + 1] = ID;
-		array[offset +2] = x;
-		array[offset +3] = y;
-		array[offset +4] = absolute ? 1 : 0;
+		array[offset +2] = robotID;
+		array[offset +3] = groupID;
 	}
-	public MoveToCommand fromIntArray(int[] array, int offset) {
+	public JoinGroupCommand fromIntArray(int[] array, int offset) {
 		int counter = 2 + offset;
-		int x = array[counter+0];
-		int y = array[counter +1];
-		boolean absolute = (array[counter +2] == 1);
-		return new MoveToCommand(x, y, absolute);
+		int robotID = array[counter+0];
+		int groupID = array[counter +1];
+		return new JoinGroupCommand(robotID, groupID);
 	}
-	public int getX() {
-		return x;
+	public int getRobotID() {
+		return robotID;
 	}
-	public int getY() {
-		return y;
-	}
-	public boolean getAbsolute() {
-		return absolute;
+	public int getGroupID() {
+		return groupID;
 	}
 
     public void debug_tick() {
@@ -62,8 +55,7 @@ public class MoveToCommand extends SubMessageBody{
         System.out.println(delta + " bytecodes used since calling debug_tick().");
     }
 	public String toString() {
-		 return "MoveToCommand\n"+		"x	:" + x +
-		"y	:" + y +
-		"absolute	:" + absolute;
+		 return "JoinGroupCommand\n"+		"robotID	:" + robotID +
+		"groupID	:" + groupID;
 	}
 }

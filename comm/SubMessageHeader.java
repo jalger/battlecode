@@ -1,10 +1,9 @@
 package teamJA_ND.comm;
 
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.Clock;
 import teamJA_ND.KnowledgeBase;
 import teamJA_ND.util.Assert;
+import battlecode.common.Clock;
+import battlecode.common.MapLocation;
 
 /**
 * Represents miscellaneous information that must be transfered along
@@ -123,9 +122,9 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     * Builder pattern is described in Item 2 of Effective Java; it allows
     * caller to emulate named optional parameters.
     * One sample usage is as follows:
-    * SubMessageHeader f = new SubMessageHeader.Builder(new MapLocation(100, 200)).range(Range.SHORT).build();
+    * SubMessageHeader f = new SubMessageHeader.Builder(new MapLocation(100, 200), 15).range(Range.SHORT).build();
     * This would create a SubMessageHeader with default values except for the range and the passed
-    * in (required) origin
+    * in (required) origin and size of body
     */
     public static class Builder 
     {
@@ -209,10 +208,18 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
 
     /**
     * If a message is time limited, returns the
-    * latest
+    * latest round which this information should be acted upon
     */
     public int getLatestRoundRelevant() {
         return latestRoundRelevant;
+    }
+
+    /**
+    * @return the number of ints needed to represent the size of the 
+    * accompanying messagebody
+    **/
+    public final int getBodySize() {
+        return bodySize;
     }
 
 
@@ -244,10 +251,6 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     public int getRecipients() {
         return recipients;
     }
-
-
-
-    
     
     /**
     * Given a <code>KnowledgeBase</code> representing what a given robot knows 
@@ -301,20 +304,16 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     * toIntArray and fromIntArray must be modified in parallel if the
     * encoding scheme ever changes.
     */
-    public int[] toIntArray() {
-        int[] message = new int[LENGTH];
-        
-        message[LENGTH_INDEX]           = LENGTH;
-        message[BODY_SIZE_INDEX]        = bodySize;
-        message[RANGE_INDEX]            = range.ordinal();
-        message[ORIGIN_X_INDEX]         = origin.getX();
-        message[ORIGIN_Y_INDEX]         = origin.getY();
-        message[TIME_LIMITED_INDEX]     = timeLimited ? 1 : 0;
-        message[LATEST_ROUND_RELEVANT_INDEX] = latestRoundRelevant;
-        message[RECIPIENT_TYPE_INDEX]   = recipientType.ordinal();
-        message[RECIPIENTS_INDEX]       = recipients;
-        
-        return message;
+    public void toIntArray(int[] message, int offset) {
+        message[offset + LENGTH_INDEX]           = LENGTH;
+        message[offset + BODY_SIZE_INDEX]        = bodySize;
+        message[offset + RANGE_INDEX]            = range.ordinal();
+        message[offset + ORIGIN_X_INDEX]         = origin.getX();
+        message[offset + ORIGIN_Y_INDEX]         = origin.getY();
+        message[offset + TIME_LIMITED_INDEX]     = timeLimited ? 1 : 0;
+        message[offset + LATEST_ROUND_RELEVANT_INDEX] = latestRoundRelevant;
+        message[offset + RECIPIENT_TYPE_INDEX]   = recipientType.ordinal();
+        message[offset + RECIPIENTS_INDEX]       = recipients;
     }
     
 
@@ -421,11 +420,11 @@ public class SubMessageHeader implements Transferable<SubMessageHeader>
     }
     
     public static void test(SubMessageHeader head) {
-        String result = head.toString();
+/*        String result = head.toString();
         int[] defaultIntArray = head.toIntArray();
         SubMessageHeader transformed = PARSER.fromIntArray(defaultIntArray, 0);
         String transformedResult = transformed.toString();
-        Assert.Assert(result.equals(transformedResult), "Original: " + head + "\n Transformed: " + transformedResult);
+        Assert.Assert(result.equals(transformedResult), "Original: " + head + "\n Transformed: " + transformedResult);*/
     }
     
 

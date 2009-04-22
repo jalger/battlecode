@@ -1,0 +1,4 @@
+FringeInfo
+FRINGE
+private int directionIndex;
+private boolean[] groundTraversable;

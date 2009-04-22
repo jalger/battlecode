@@ -1,12 +1,15 @@
 package teamJA_ND.comm;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import teamJA_ND.KnowledgeBase;
+import teamJA_ND.util.Assert;
 import battlecode.common.Clock;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import java.util.LinkedList;
-import java.util.List;
-import teamJA_ND.util.Assert;
-import teamJA_ND.KnowledgeBase;
+
 
 /**
 * A Message contains a String array, an int array, and a
@@ -59,6 +62,8 @@ public class MessageUtil {
     // We include just 1 MapLocation in the message
     private static final int NUM_MAP_LOCATIONS = 1;
 
+    private static final boolean DEBUG = false;
+
     public static void main (String [] args)
     {
 
@@ -66,62 +71,59 @@ public class MessageUtil {
 
 
     /**
-    * @return a list of SubMessageBody objects, each of which contains 
+    * @return a list of SubMessage objects, each of which contains 
     * information about what action to take, or general information.
     **/
-    public List<SubMessageBody> getRelevantSubMessages(Message m, KnowledgeBase kb) {
+    public static List<SubMessage> getRelevantSubMessages(Message m, KnowledgeBase kb) {
+
 
         // if Message is from our team
         if (fromOurTeam(m)) {
-    
+            if (DEBUG) { System.out.println("The message " + m + "is from our team.");}
+            
             // If it's been tampered with, ignore it
             if (!isLegitimate(m)) {
+                if (DEBUG) { System.out.println("Message " + m + " has been tampered with"); }
                 return null;
             }
             
             // Else it's legitimate.
             else {
-                /*
+                if (DEBUG) { System.out.println("It's legitimate"); }
+                
+                // We will go through each header and determine if the 
+                // corresponding message pertains to us.  Only then do we need
+                // to bother with parsing the message.
+                
+                // Parse all of the message headers.
                 List <SubMessageHeader> headers = unpackHeaders(m);
+                
+                if (DEBUG) {System.out.println("Unpacked the headers");}
+                
+                int start = NUM_HEADER_FIELDS;
+                List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
+                List <SubMessage> submessages = new LinkedList<SubMessage>();
+                
                 for (SubMessageHeader h : headers) {
-                    List <SubMessageBody> bodies = new LinkedList<SubMessageBody>();
                     if (h.pertainsToRobot(kb)) {
-                        SubMessageBody b = SubMessageBody.parse()
                         // Parse the body that corresponds with the header
-                        bodies.add();
+                        SubMessageBody b = SubMessageBody.parse(m.ints, start + h.getLength());
+                        bodies.add(b);
+                        
+                        submessages.add(new SubMessage(h, b));
                     }
-                    
-                    if (h.shouldBeRebroadcast()) {
+                    /* Right now we are not rebroadcasting for simplicity.
+                    if (h.shouldRebroadcast()) {
                         // Make sure that the resulting int stuff ends up there
-                    }
-                }*/
-                // For each submessageheader, determine if it pertains to me.
-                    // If so, parse out the corresponding body.
+                    }*/
                     
-                // 
+                    // We're done looking at this SubMessage; skip enough space
+                    // to reach the next one.
+                    start += h.getLength() + h.getBodySize();
+                }
                 
+                return submessages;
                 
-                /*
-                // Parse message into its submessages
-                List<SubMessage> messages = unpack(m);
-
-                // For each submessage
-                for (SubMessage s : messages) {
-                    // Determine if it pertains to me, and act on it if so
-                    if (pertainsToMe(s)) {
-                        System.out.println(s + " pertains to me.");
-                    }
-
-                    // If should rebroadcast
-                    if (shouldRebroadcast(s)) {
-                        // rebroadcast, changing the header information to match
-                        // current state of game and robot information
-                        
-                        System.out.println("I should redbroadcast" + s);
-                        
-                    } // shouldRedbroadcast
-                } // for loop
-                */
             } // legitimate
         } // from our team
 
@@ -131,7 +133,7 @@ public class MessageUtil {
 
             // decide whether to try to screw up enemy communication by editing their message
             // and rebroadcasting
-            System.out.println("Intercepted enemy message" + m);
+            if (DEBUG) { System.out.println("Intercepted enemy message" + m); }
         }
         return null;
     }
@@ -161,63 +163,73 @@ public class MessageUtil {
 
         return subMessages;
     }
+    
+    public static List <SubMessageHeader> unpackHeaders(Message m) {
+        int[] encodedMessages = m.ints;
+        List<SubMessageHeader> subMessageHeaders = 
+            new LinkedList<SubMessageHeader>();
+        
+        // The first NUM_HEADER_FIELDS of int field have nothing to do
+        // with the submessages contained inside; ignore them
+
+        int start = NUM_HEADER_FIELDS;
+        // We keep track of where the next submessage starts; if it is equal
+        // to or greater than the length of the int array then we are done
+        while (start < m.ints.length) {
+            SubMessageHeader header = SubMessageHeader.PARSER.fromIntArray(encodedMessages, start);
+            start += header.getLength() + header.getBodySize();
+            subMessageHeaders.add(header);
+        }
+
+        return subMessageHeaders;
+    }
 
 
     public static Message pack(List<SubMessage> messages, 
                                MapLocation currentSquare,
                                int robotID,
                                int robotMessageID) {
-        // Create a header and encode the location of sending robot
-        int[] header = createHeader(robotID, robotMessageID);
-        MapLocation[] locations = new MapLocation[] { currentSquare };
-
-        // Pack all of the messages into their int arrays; need twice as much
-        // space because 
-        int[][] packedMessages = new int[2 * messages.size()][];
-        int totalSize = header.length;
-        int counter = 0;
+        
+                                   
+        
+        // Calculate the number of ints needed to represent the submessages
+        int subMessageSize = 0;
         for (SubMessage m : messages) {
-            int[] packedMessage = m.toIntArray();
-            totalSize += packedMessage.length;
-            packedMessages[counter++] = packedMessage;
+            subMessageSize += m.getLength();
         }
+        
 
-        // We now have all of our messages packed in a two dimensional
-        // array; we need to flatten the data structure into a single int
-        // array
-        int[] wholeMessage = new int[totalSize];
-        // Copy header into place
-        System.arraycopy(header, 0, wholeMessage, 0, header.length);
+        int[] encodedMessage = new int[NUM_HEADER_FIELDS + subMessageSize];
 
-        // Copy the rest of the messages into place
-        for (int i = 0, curPos = header.length; i < packedMessages.length; i++) {
-            int[] packed = packedMessages[i];
-            System.arraycopy(packed, 0, wholeMessage, curPos, packed.length);
-            curPos += packed.length;
-        }
-
-
+        createHeader(encodedMessage, 0, robotID, robotMessageID);
+        
+        //int clockByteNum = Clock.getBytecodeNum();
+        
+        int offset = NUM_HEADER_FIELDS;
+        for (SubMessage m : messages) {
+            m.toIntArray(encodedMessage, offset);
+            offset += m.getLength();
+        }                       
+       // System.out.println("Took " + (Clock.getBytecodeNum() - clockByteNum) + " for calculating length");
+        
+    
         Message m = new Message();
-        m.strings = null;
-        m.ints = wholeMessage;
-        m.locations = locations;
+        m.ints = encodedMessage;
+        m.locations = new MapLocation[] { currentSquare };
 
         return m;
     }
 
 
-
-    private static int[] createHeader(int robotID, int robotMessageID) {
+    private static void createHeader(int[] packedMessage, int offset, int robotID, int robotMessageID) {
         // Fill an array with all the information that we use to distinguish
         // legitimate information
-        int[] header = new int[NUM_HEADER_FIELDS];
-        header[ROBOT_MESSAGE_ID_INDEX] = robotMessageID;
-        header[ROBOT_ID_INDEX] = robotID;
-        header[CLOCK_INDEX] = Clock.getRoundNum();
+        packedMessage[offset + ROBOT_MESSAGE_ID_INDEX] = robotMessageID;
+        packedMessage[offset + ROBOT_ID_INDEX] = robotID;
+        packedMessage[offset + CLOCK_INDEX] = Clock.getRoundNum();
         
         // Make a hash out of previous 3 values
-        header[HASH_INDEX] = simpleHash(header, 0, 3);
-        return header;
+        packedMessage[offset + HASH_INDEX] = simpleHash(packedMessage, offset, 3);
     }
 
     /**
@@ -255,22 +267,26 @@ public class MessageUtil {
     * matches our format and that the hash stored within the header
     * matches the hash of the message
     */
-    public static boolean isWellFormedHeader(int[] header) {
+    public static boolean isWellFormedHeader(int[] message) {
         // Check for the hash to match
-        int storedHash = header[header.length - 1];
-        int resultHash = simpleHash(header, 0, header.length - 1);
+        int storedHash = message[HASH_INDEX];
+        // Take a hash of the first few fields that are what the hash is of.
+        int resultHash = simpleHash(message, 0, NUM_HEADER_FIELDS - 1);
 
         return storedHash == resultHash;
     }
 
 
+    // TODO: How do we check for legitimacy?
     /**
     * Given a Message that is ostensibly from our team, determine
     * whether it has been tampered with.
-    * Assumes that the strings and ints fields are not null.
+    * Assumes that the ints fields are not null.
     * @param m the Message to check for legitimacy
     */
     public static boolean isLegitimate(Message m) {
+        return true;
+        /*
         String[] strings = m.strings;
         int[] ints = m.ints;
 
@@ -283,12 +299,11 @@ public class MessageUtil {
             return false;
         }
 
-
         // Ensure that the hash of the header matches
         if (simpleHash(strings[0]) != ints[0]) {
             return false;
         }
-        return false;
+        return false;*/
     }
 
     
@@ -339,6 +354,69 @@ public class MessageUtil {
     }
 
 
+    public static void test()
+    {
+        final int ROBOT_ID = 8;
+        final int GROUP_ID = -125;
+        final MapLocation CUR_LOC = new MapLocation(100, 200);
+        final int ROBOT_MESSAGE_ID = 153;
+        SubMessageBody b = new ShoveCommand(ROBOT_ID);
+        SubMessageHeader h = new SubMessageHeader.Builder(CUR_LOC, b.getLength()).range(SubMessageHeader.Range.SHORT).build();
+        
+        SubMessageBody b2 = new AttackCommand (CUR_LOC);
+        SubMessageHeader h2 = new SubMessageHeader.Builder(CUR_LOC, b2.getLength()).build();
+        
+        SubMessageBody b3 = new JoinGroupCommand (ROBOT_ID, GROUP_ID);
+        SubMessageHeader h3 = new SubMessageHeader.Builder(CUR_LOC, b3.getLength()).build();
+        
+        
+        SubMessage m = new SubMessage(h, b);
+        SubMessage m2 = new SubMessage(h2, b2);
+        SubMessage m3 = new SubMessage(h3, b3);
+        
+        final int NUM_POINTS = 17;
+        boolean[] groundTraversable = new boolean[NUM_POINTS];
+        
+        for (int i = 0; i < NUM_POINTS; i++) {
+            groundTraversable[i] = (i % 2 == 0);
+        }
+        
+        SubMessageBody b4 = new FringeInfo(1, groundTraversable);
+        SubMessageHeader h4 = new SubMessageHeader.Builder(CUR_LOC, b4.getLength()).build();
+        SubMessage m4 = new SubMessage(h4, b4);
+        
+        List<SubMessage> sms = Arrays.asList(new SubMessage[] {m, m2 ,m3, m4});
+        
+        Message packed = pack(sms, 
+                            CUR_LOC,
+                            ROBOT_ID,
+                            ROBOT_MESSAGE_ID);
+                            
+
+        System.out.println("The message is " + packed.ints.length + " ints long.");
+        System.out.println(java.util.Arrays.toString(packed.ints));
+        System.out.println(java.util.Arrays.toString(packed.ints) + java.util.Arrays.toString(packed.strings));
+
+        List <SubMessageHeader> headers = unpackHeaders(packed);
+        System.out.println(headers.toString() + "\n\n" + h.toString() + h2.toString() + h3.toString() + h4.toString());
+        
+        Assert.Assert(fromOurTeam(packed), "We made this message; " + 
+        "it'd better show up as being from our team");
+            
+        Assert.Assert(headers.get(0).toString().equals(h.toString()));
+        Assert.Assert(headers.get(1).toString().equals(h2.toString()));
+        Assert.Assert(headers.get(2).toString().equals(h3.toString()));
+        Assert.Assert(headers.get(3).toString().equals(h4.toString()));
+            
+        
+        List<SubMessage> retrieved = getRelevantSubMessages(packed, new KnowledgeBase());
+        System.out.println(sms.toString() + "\n\n" + retrieved.toString());
+        //Assert.Assert(sms.toString().equals(retrieved.toString()));
+        
+        
+
+        
+    }
 
     
     

@@ -1,0 +1,3 @@
+LeaveGroupCommand
+LEAVE_GROUP
+private int id;
