@@ -4,16 +4,42 @@ import battlecode.common.RobotController;
 import battlecode.common.GameActionException;
 import battlecode.common.*;
 
+import java.util.List;
+import java.util.LinkedList;
 
 public class SpawnRobot extends DefaultRobot {
     
     private Robot healingTarget;
     
+    private int numRobotsSpawned;
+    private boolean justSpawned;
     private static final double MIN_ENERGON_RESERVE = 10D;
+    
+    private static final int MAX_NUM_SOLDIERS_TO_SPAWN = 2;
+    
+    private static final Direction[] DIRECTIONS = new Direction[] {
+        Direction.NORTH,
+        Direction.NORTH_EAST,
+        Direction.EAST,
+        Direction.SOUTH_EAST,
+        Direction.SOUTH,
+        Direction.SOUTH_WEST,
+        Direction.WEST,
+        Direction.NORTH_WEST,
+        Direction.NONE
+    };
+    
+    
+    private List<Robot> children;
+    
     
     public SpawnRobot(RobotController rcIn) {
         super(rcIn);
         healingTarget = null;
+        numRobotsSpawned = 0;
+        justSpawned = false;
+        
+        children = new LinkedList<Robot>();
     }
 
     public void run() {
@@ -37,80 +63,96 @@ public class SpawnRobot extends DefaultRobot {
         try {
             while (true) {
                 
-                // Try to find robots to heal
-                if (healingTarget == null) {
-                    // Check to see if any robots around you need energon
-                    Robot[] groundUnits = rc.senseNearbyGroundRobots();
-                    healingTarget = getClosestDamagedFriendlyRobot(rc, groundUnits);
                 
+                if (children.size() < MAX_NUM_SOLDIERS_TO_SPAWN &&
+                    canSpawn(rc, RobotType.SOLDIER)) {
+  
+                    rc.spawn(RobotType.SOLDIER);
+                    justSpawned = true;
+                    rc.yield();
                 }
                 
-                // We have a target we're trying to heal
-                if (healingTarget != null) {
+                // Unit should appear in front of me
+                if (justSpawned) {
+                    Robot child = rc.senseGroundRobotAtLocation(rc.getLocation().add(rc.getDirection()));
+                    
+                    if (child != null) {
+                        System.out.println("I just spawned, an a robot: " + 
+                                            child + " just popped out.  " +
+                                            "Adding to my children list.");
+                        children.add(child);
+                        justSpawned = false;      
+                        healingTarget = child;              
+                    }
+                }
+                
+                // Don't heal anyone until you've spawned at least one unit
+                if (children.size() > 0) {
+                    
+                    // Try to find robots to heal
+                    if (healingTarget == null) {
+                        //debug_tick();
+                        // Check to see if any robots around you need energon
+                        Robot[] groundUnits = rc.senseNearbyGroundRobots();
+                    
+                        healingTarget = getAdjacentFriendlyRobot(rc, groundUnits);
+                        //healingTarget = getClosestDamagedFriendlyRobot(rc, groundUnits);
+                        //healingTarget = getMostDamagedRobot(rc, groundUnits);
+                    }
+                
+                    // We have a target we're trying to heal
+                    if (healingTarget != null) {
                     
                     
-                    System.out.println("Attempting to heal " + healingTarget);
+                        System.out.println("Attempting to heal " + healingTarget);
                     
-                    // TODO: We need to ensure that our target does not move
-                    // out of range from the time we choose it, and then
-                    // try to sense it.  Otherwise we'll get an exception
+                        // TODO: We need to ensure that our target does not move
+                        // out of range from the time we choose it, and then
+                        // try to sense it.  Otherwise we'll get an exception
                     
                     
-                    // Find out information about the robot we're going to
-                    // heal
-                    RobotInfo healingTargetInfo = rc.senseRobotInfo(healingTarget);
+                        // Find out information about the robot we're going to
+                        // heal
+                        RobotInfo healingTargetInfo = rc.senseRobotInfo(healingTarget);
                     
-                    MapLocation curLoc = rc.getLocation();
-                    MapLocation healingTargetLoc = healingTargetInfo.location;
+                        MapLocation curLoc = rc.getLocation();
+                        MapLocation healingTargetLoc = healingTargetInfo.location;
                     
-                    // We can transfer the energon
-                    if (curLoc.equals(healingTargetLoc) || 
-                        curLoc.isAdjacentTo(healingTargetLoc)) {
+                        // We can transfer the energon
+                        if (curLoc.equals(healingTargetLoc) || 
+                            curLoc.isAdjacentTo(healingTargetLoc)) {
                         
-                        double energonAmt = Math.min(rc.getEnergonLevel() - 
-                                                    MIN_ENERGON_RESERVE, 
-                                                    getDamage(healingTargetInfo));
+                            double energonAmt = Math.min(rc.getEnergonLevel() - 
+                                                        MIN_ENERGON_RESERVE, 
+                                                        getDamage(healingTargetInfo));
                                                     
-                        if (energonAmt < 0) {
-                            energonAmt = 0;
-                        }                            
-                        rc.transferEnergon( energonAmt, 
-                                            healingTargetLoc,
-                                            healingTarget.getRobotLevel()); 
+                            if (energonAmt < 0) {
+                                energonAmt = 0;
+                            }                            
+                            rc.transferEnergon( energonAmt, 
+                                                healingTargetLoc,
+                                                healingTarget.getRobotLevel()); 
                         
-                        // Ensure we don't try to do two actions this turn
-                        healingTarget = null;
-                        rc.yield();
-                    }
+                            // Ensure we don't try to do two actions this turn
+                            healingTarget = null;
+                            rc.yield();
+                        }
                     
-                    // We need to move towards the robot
-                    else {
-                        System.out.println("I am at " + curLoc + " and need to move to reach " + healingTargetLoc);
+                        // We need to move towards the robot
+                        else {
+                            System.out.println("I am at " + curLoc + " and need to move to reach " + healingTargetLoc);
                         
-                        //moveTo(healingTargetLoc);
-                        continue;
+                            //moveTo(healingTargetLoc);
+                            continue;
+                        }
+                    
+                    
                     }
-                    
-                    
                 }
                 
                 
-                
-                    // Else, move in their direction
-                
-                // Else if you can spawn a unit, do so
-                
-                // Check to see if square in front of you is free
-                else if (canSpawn(rc, RobotType.SOLDIER)) {
-                    try {
-                        rc.spawn(RobotType.SOLDIER);
-//                        justSpawned = true;
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if (!rc.isMovementActive()) {
+                if (!rc.isMovementActive()) {
+                    System.out.println("Going to move now.");
                 
                     if(rc.canMove(rc.getDirection())) {
                        rc.moveForward();
@@ -177,6 +219,31 @@ public class SpawnRobot extends DefaultRobot {
         }
         return mostDamaged;
     }
+    
+    
+    public static Robot getAdjacentFriendlyRobot(RobotController rc,
+                                                Robot[] robots) 
+                                                throws GameActionException 
+    {
+        MapLocation ml = rc.getLocation();
+        for (Robot r : robots) {
+           RobotInfo ri = rc.senseRobotInfo(r);
+           
+           // Adjacent
+           if ( ml.isAdjacentTo(ri.location) &&
+                // Friendly
+                rc.getTeam() == ri.team &&
+                // HACK: not archon
+                ri.type != RobotType.ARCHON &&
+                
+                // Damaged
+                getDamage(ri) > 0) {
+               return r;
+           }
+        }
+        return null;
+    }
+    
     
     
     /**
