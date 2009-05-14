@@ -18,9 +18,18 @@ public class WanderRobot extends DefaultRobot {
     public void run()
     {
         
-        // TODO: Need to see if you're currently unable to move
         try {
             while (true) {
+                
+                
+                
+                // HACK
+                rc.yield();
+                // rc.yield();
+                //                 System.out.println(this + " going to explode now.");
+                //                 rc.suicide();
+                //                 
+                
                 if (!rc.isMovementActive()) {
                 
                     if(rc.canMove(rc.getDirection())) {

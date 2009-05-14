@@ -5,13 +5,15 @@
 
 package teamJA_ND.state;
 
-import teamJA_ND.KnowledgeBase;
-import teamJA_ND.DefaultRobot;
-import battlecode.common.RobotController;
-import battlecode.common.Robot;
-import battlecode.common.RobotType;
-import battlecode.common.RobotInfo;
 import java.util.Comparator;
+
+import teamJA_ND.DefaultRobot;
+import teamJA_ND.KnowledgeBase;
+import battlecode.common.Robot;
+import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
+import battlecode.common.Direction;
 
 /**
  *
@@ -30,8 +32,53 @@ public class Attack extends State {
     }
 
     public void onEnter() {
+        // If you can attack
+        if (robotController.getRoundsUntilAttackIdle() == 0) {
+            // Check to see if any enemy robots are in attack range
+            
+                // If so, pick which one to attack
+        }
+        
+        // You can move and there are enemy robots within sensor range
+        else if (robotController.getRoundsUntilMovementIdle() == 0) {
+            
+        }
+        
+        
+        else {
+            
+        }
+        
+    }
+    
+    /**
+    * Use a simplified method of potential fields to determine which of the
+    * 8 surrounding squares is best to move to
+    */
+    public Direction getBestMoveDirection(KnowledgeBase kb) {
+        
+        
+        
+        //Direction d = heuristicBestDirection(kb);
+
+        // For the 8 surrounding squares
+        for (int i = 0; i < 8; i++) {    
+           // For each robot in sensor range
+           
+           
+                // If on our team:
+                    // Add the bonus for our team
+                    
+
+        }
+        return null;
+                    
+                    
 
     }
+    
+    
+    
 
     public void update() {
 

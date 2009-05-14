@@ -1,11 +1,8 @@
 package teamJA_ND.state;
 
-import teamJA_ND.KnowledgeBase;
 import teamJA_ND.DefaultRobot;
+import teamJA_ND.KnowledgeBase;
 import battlecode.common.RobotController;
-import battlecode.common.Robot;
-import battlecode.common.RobotType;
-import battlecode.common.RobotInfo;
 
 public class SoldierAttack extends GroundAttack {
     

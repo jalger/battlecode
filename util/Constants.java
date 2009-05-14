@@ -1,4 +1,4 @@
-package teamJA_ND;
+package teamJA_ND.util;
 
 /**
 * @author Nicholas Dunn
@@ -6,21 +6,15 @@ package teamJA_ND;
 */
 public class Constants {
     
-    // Constants for ID'ing message types and parsers
+    // TODO: change these constants
+    public static final int MAX_NUM_SOLDIERS_TO_SPAWN = 15;
+    public static final int MAX_NUM_SCOUTS_TO_SPAWN = 3;
+    public static final int MAX_NUM_BOMBERS_TO_SPAWN = 15;
     
-    static public final int MAP_AREA_ID = 0;
-    static public final int FRINGE_ID = 1;
-    static public final int PATH_ID = 2;
-    static public final int SUB_MESSAGE_HEADER = 3;
+    public static final int MAX_NUM_NON_ARCHONS_TO_SPAWN = 35;
+
     
-    public enum Transferable {
-        MAP_AREA
-        
-        
-        
-        
-        
-    }
+    
     
     
 }
