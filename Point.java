@@ -23,6 +23,13 @@ public class Point {
         y = yIn;
     }
 
+    /**
+    * @return a new Point that has x and y scaled by <code>scale</code>
+    **/
+    public Point scale(int scale) {
+        return new Point(scale * x, scale * y);
+    }
+
     public boolean equals(Object other) {
         if (!(other instanceof Point)) { return false; }
         Point p = (Point) other;

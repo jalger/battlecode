@@ -735,11 +735,19 @@ public class Map {
         }
         System.out.println("\n\n");
     }
-
+    
+    /**
+    * Conversion method to translate from raw battlecode map coordinates to
+    * our custom Point class
+    **/
     public MapLocation toMapLocation(Point p) {
         return new MapLocation(p.x - dx, p.y - dy);
     }
 
+    /**
+    * Conversion method to translate from our custom Point class back to raw
+    * battlecode map coordinates.
+    **/
     public Point toPoint(MapLocation m) {
         return new Point(m.getX() + dx, m.getY() + dy);
     }

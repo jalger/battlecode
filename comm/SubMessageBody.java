@@ -29,6 +29,7 @@ public abstract class SubMessageBody implements Transferable<SubMessageBody>
     public static final int COMMAND_COMPLETED_ID = 36928367;
     public static final int COMMAND_REFUSED_ID = 26938523;
     public static final int FRINGE_ID = 134125125;
+    public static final int ROBOT_INFO_MESSAGE_ID = 91251651;
     
     
     
@@ -136,7 +137,9 @@ public abstract class SubMessageBody implements Transferable<SubMessageBody>
                 
             case FRINGE_ID:
                 return FringeInfo.PARSER;
-            
+            case ROBOT_INFO_MESSAGE_ID:
+                return RobotInfoMessage.PARSER;
+
             default:
                 return null;
             

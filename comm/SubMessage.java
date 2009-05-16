@@ -48,4 +48,8 @@ public class SubMessage implements Transferable<SubMessage> {
     public String toString() {
         return "Header: " + header.toString() + "\n" + "Body: " + body.toString();
     }
+
+    public SubMessageBody getBody() {
+        return body;
+    }
 }

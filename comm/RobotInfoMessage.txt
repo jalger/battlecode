@@ -1,0 +1,13 @@
+RobotInfoMessage
+ROBOT_INFO_MESSAGE
+private int friendlyGroundRobots;
+private int enemyGroundRobots;
+private int friendlyAirRobots;
+private int enemyAirRobots;
+
+private int[] currentEnergons;
+private int[] eventualEnergons;
+private int[] currentXPos;
+private int[] currentYPos;
+private int[] robotTypes;
+private int[] robotIDs;

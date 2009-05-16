@@ -7,11 +7,20 @@ public class WanderRobot extends DefaultRobot {
     
     private RobotController rc;
     
+    private Move blitzArchon;
+    
     public WanderRobot(RobotController rc) 
     {
         super(rc);
         System.out.println("I'm a wandering fool!");
         this.rc = rc;
+        
+        
+        Direction dirToEnemyArchon = rc.senseEnemyArchon();
+        
+        blitzArchon = startBlitz(rc.getLocation(), dirToEnemyArchon);
+        
+        blitzArchon.onEnter();
         
     }
     
@@ -22,23 +31,11 @@ public class WanderRobot extends DefaultRobot {
             while (true) {
                 
                 
-                
-                // HACK
-                rc.yield();
-                // rc.yield();
-                //                 System.out.println(this + " going to explode now.");
-                //                 rc.suicide();
-                //                 
-                
-                if (!rc.isMovementActive()) {
-                
-                    if(rc.canMove(rc.getDirection())) {
-                       rc.moveForward();
-                    }
-                    else {
-                       rc.setDirection(rc.getDirection().rotateRight());
-                    }
+                if (shouldHeal()) {
+                    heal();
                 }
+                
+                blitzArchon.update();
                 rc.yield();
             }
         }

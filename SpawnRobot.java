@@ -3,20 +3,21 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.GameActionException;
 import battlecode.common.*;
+import teamJA_ND.util.UtilityFunctions;
 
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Vector;
 
 import teamJA_ND.comm.*;
+import java.util.Comparator;
 
-public class SpawnRobot extends DefaultRobot {
-    
-    private Robot healingTarget;
+public class SpawnRobot extends Archon {
     
     private int numRobotsSpawned;
     private boolean justSpawned;
-    private static final double MIN_ENERGON_RESERVE = 10D;
+    
+    private static final double MAX_ENERGON = RobotType.ARCHON.maxEnergon();
     
     private static final int MAX_NUM_SOLDIERS_TO_SPAWN = 2;
     
@@ -32,17 +33,27 @@ public class SpawnRobot extends DefaultRobot {
         Direction.NONE
     };
     
+    public static final boolean DEBUG = true;
     
     private List<Robot> children;
+    
+    private DistanceComparator distanceComp;
+    private ClosestDamagedComparator closestDamagedComp;
+    
+    
+    
+     
     
     
     public SpawnRobot(RobotController rcIn) {
         super(rcIn);
-        healingTarget = null;
         numRobotsSpawned = 0;
         justSpawned = false;
-        
         children = new LinkedList<Robot>();
+        
+        distanceComp = new DistanceComparator(rc);
+        
+        closestDamagedComp = new ClosestDamagedComparator(rc);
     }
 
     public void run() {
@@ -65,7 +76,7 @@ public class SpawnRobot extends DefaultRobot {
         System.out.println("I'm an Archon!");
         try {
             while (true) {
-                if (Clock.getRoundNum() == 500) {
+                /*if (Clock.getRoundNum() == 500) {
                     myMap.debug_printMap();
                     senseRobots();
                     rc.yield();
@@ -93,8 +104,10 @@ public class SpawnRobot extends DefaultRobot {
 
 
                     while (true) {}
-                }
+                }*/
                 
+                // Get information about the units around us
+                startTurn();
                 if (children.size() < MAX_NUM_SOLDIERS_TO_SPAWN &&
                     canSpawn(rc, RobotType.SOLDIER)) {
   
@@ -102,7 +115,6 @@ public class SpawnRobot extends DefaultRobot {
                     justSpawned = true;
                     rc.yield();
                 }
-                
                 // Unit should appear in front of me
                 if (justSpawned) {
                     Robot child = rc.senseGroundRobotAtLocation(rc.getLocation().add(rc.getDirection()));
@@ -113,74 +125,13 @@ public class SpawnRobot extends DefaultRobot {
                                             "Adding to my children list.");
                         children.add(child);
                         justSpawned = false;      
-                        healingTarget = child;              
                     }
                 }
                 
                 // Don't heal anyone until you've spawned at least one unit
                 if (children.size() > 0) {
-                    
-                    // Try to find robots to heal
-                    if (healingTarget == null) {
-                        //debug_tick();
-                        // Check to see if any robots around you need energon
-                        Robot[] groundUnits = rc.senseNearbyGroundRobots();
-                    
-                        healingTarget = getAdjacentFriendlyRobot(rc, groundUnits);
-                        //healingTarget = getClosestDamagedFriendlyRobot(rc, groundUnits);
-                        //healingTarget = getMostDamagedRobot(rc, groundUnits);
-                    }
-                
-                    // We have a target we're trying to heal
-                    if (healingTarget != null) {
-                    
-                    
-                        System.out.println("Attempting to heal " + healingTarget);
-                    
-                        // TODO: We need to ensure that our target does not move
-                        // out of range from the time we choose it, and then
-                        // try to sense it.  Otherwise we'll get an exception
-                    
-                    
-                        // Find out information about the robot we're going to
-                        // heal
-                        RobotInfo healingTargetInfo = rc.senseRobotInfo(healingTarget);
-                    
-                        MapLocation curLoc = rc.getLocation();
-                        MapLocation healingTargetLoc = healingTargetInfo.location;
-                    
-                        // We can transfer the energon
-                        if (curLoc.equals(healingTargetLoc) || 
-                            curLoc.isAdjacentTo(healingTargetLoc)) {
-                        
-                            double energonAmt = Math.min(rc.getEnergonLevel() - 
-                                                        MIN_ENERGON_RESERVE, 
-                                                        getDamage(healingTargetInfo));
-                                                    
-                            if (energonAmt < 0) {
-                                energonAmt = 0;
-                            }                            
-                            rc.transferEnergon( energonAmt, 
-                                                healingTargetLoc,
-                                                healingTarget.getRobotLevel()); 
-                        
-                            // Ensure we don't try to do two actions this turn
-                            healingTarget = null;
-                            rc.yield();
-                        }
-                    
-                        // We need to move towards the robot
-                        else {
-                            System.out.println("I am at " + curLoc + " and need to move to reach " + healingTargetLoc);
-                        
-                            //moveTo(healingTargetLoc);
-                            continue;
-                        }
-                    
-                    
-                    }
+                    heal();
                 }
-                
                 
                 if (!rc.isMovementActive()) {
                     //System.out.println("Going to move now.");
@@ -192,7 +143,7 @@ public class SpawnRobot extends DefaultRobot {
                        rc.setDirection(rc.getDirection().rotateRight());
                     }
                 }
-                rc.yield();
+                endTurn();
             }
         }
         catch (Exception e) {
@@ -223,108 +174,5 @@ public class SpawnRobot extends DefaultRobot {
         return rc.canMove(rc.getDirection());
     }
     
-    
-    /**
-    * @return the Robot which has taken the most damage in absolute
-    * terms 
-    **/
-    public static Robot getMostDamagedRobot(RobotController rc, 
-                                            Robot[] groundRobots)
-                                            throws GameActionException 
-    {
-        // There are no robots around                                        
-        if (groundRobots.length == 0) { return null; }
 
-
-        // Pick initial robot
-        Robot mostDamaged = groundRobots[0];
-        double maxDamage = getDamage(rc.senseRobotInfo(mostDamaged));
-        
-        // Iterate and find those that are more damaged
-        for (Robot r : groundRobots) {
-            double newDamage = getDamage(rc.senseRobotInfo(r));
-            if (newDamage > maxDamage) {
-                mostDamaged = r;
-                maxDamage = newDamage;
-            }
-        }
-        return mostDamaged;
-    }
-    
-    
-    public static Robot getAdjacentFriendlyRobot(RobotController rc,
-                                                Robot[] robots) 
-                                                throws GameActionException 
-    {
-        MapLocation ml = rc.getLocation();
-        for (Robot r : robots) {
-           RobotInfo ri = rc.senseRobotInfo(r);
-           
-           // Adjacent
-           if ( ml.isAdjacentTo(ri.location) &&
-                // Friendly
-                rc.getTeam() == ri.team &&
-                // HACK: not archon
-                ri.type != RobotType.ARCHON &&
-                
-                // Damaged
-                getDamage(ri) > 0) {
-               return r;
-           }
-        }
-        return null;
-    }
-    
-    
-    
-    /**
-    * @return the Robot which is damaged and closest to calling robot
-    **/
-    public static Robot getClosestDamagedFriendlyRobot(RobotController rc,
-                                                Robot[] groundRobots) 
-                                                throws GameActionException
-    {
-        // There are no robots around                                        
-        if (groundRobots.length == 0) { return null; }
-        
-        MapLocation curLocation = rc.getLocation();
-        
-        // Pick initial robot
-        Robot closestDamaged = null;
-        int minDistance = Integer.MAX_VALUE;
-                
-        // Iterate and find those that are closer
-        for (Robot r : groundRobots) {
-            
-            RobotInfo info = rc.senseRobotInfo(r);
-            
-            // Only want robots on our team
-            if (info.team != rc.getTeam()) { continue; }
-            
-            
-            // Only want damaged robots
-            if (getDamage(info) == 0) { continue; }
-            
-            // HACK: don't heal archons
-            if (info.type == RobotType.ARCHON) { continue; }
-            
-            
-            
-            int newDistance = info.location.distanceSquaredTo(curLocation);
-            
-            if (newDistance <= minDistance) {
-                closestDamaged = r;
-                minDistance = newDistance;
-            }
-        }
-        
-        
-        return closestDamaged;
-        
-    }
-    
-    public static double getDamage(RobotInfo r) {
-        return r.maxEnergon - r.eventualEnergon;
-    }
-    
 }
