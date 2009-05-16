@@ -14,6 +14,9 @@ import teamJA_ND.state.*;
 import teamJA_ND.util.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Comparator;
+
+import teamJA_ND.util.UtilityFunctions;
 
 public class DefaultRobot implements Runnable {
 
@@ -46,6 +49,13 @@ public class DefaultRobot implements Runnable {
     protected KnowledgeBase kb;
     protected Team myTeam;
     
+    private static final boolean DEBUG = true;
+    private double MAX_ENERGON;
+    private static final double MIN_ENERGON_RESERVE = 10.0;
+    // Don't transfer energon if you have less than 40% life
+    private static final double MIN_PROPORTION_ENERGON_TO_HEAL = 0.4;
+    
+    private Comparator<RobotInfo> closestDamagedRobotComp;
     
     
     public DefaultRobot(RobotController rcIn) {
@@ -62,9 +72,14 @@ public class DefaultRobot implements Runnable {
         attackCooldown--;
         myHeight = rc.getRobot().getRobotLevel();
         myTeam = rc.getTeam();
+        
+        MAX_ENERGON = rc.getMaxEnergonLevel();
+        
+        closestDamagedRobotComp = new ClosestDamagedComparator(rc);
     }
 
     public void run() {
+
 
 
 	/*
@@ -184,6 +199,137 @@ public class DefaultRobot implements Runnable {
 
         debug_tock();
 
+    }
+
+
+    /**
+    * @return the proportion of life the robot has left
+    **/
+    public static double getProportionHealth(RobotInfo r) {
+        return r.eventualEnergon / r.maxEnergon;
+    }
+
+    /**
+    * @return the proportion of life the robot has left
+    **/
+    public static double getProportionHealth(RobotController rc) {
+        return rc.getEventualEnergonLevel() / rc.getMaxEnergonLevel();
+    }
+
+    /**
+    * @return how much damage this robot has taken
+    **/
+    public static double getDamage(RobotInfo r) {
+          return r.maxEnergon - r.eventualEnergon;
+    }
+
+
+
+    /**
+    * @return true if we have enough energon to attempt to heal other units
+    **/
+    protected boolean shouldHeal() {
+        double proportionHealth = rc.getEventualEnergonLevel() / MAX_ENERGON;
+        return proportionHealth >= MIN_PROPORTION_ENERGON_TO_HEAL;
+    }
+
+    /**
+    *
+    * Transfer some of your energon to a nearby robot that has lower health, 
+    * as a percentage.
+    * Note that this method assumes that the knowledge base is up to date;
+    * if the robots around it have moved and we attempt to transfer energon
+    * to that square, we throw an exception; hence we explicitly try for that
+    * condition.
+    **/
+    protected void heal() {
+        
+        // To whom are we going to attempt to transfer energon?
+        RobotInfo transferTarget = null;
+       
+        RobotInfo closestGroundRobot = 
+            UtilityFunctions.min(kb.friendlyGroundRobots, 0, kb.friendlyGroundRobotsSize, closestDamagedRobotComp);
+        RobotInfo closestAirRobot = 
+            UtilityFunctions.min(kb.friendlyAirRobots, 0, kb.friendlyAirRobotsSize, closestDamagedRobotComp);
+        
+        transferTarget = closestGroundRobot;
+        // TODO: take into account air robot
+   
+        // No suitable targets to heal
+        if (transferTarget == null) {
+            if (DEBUG) {
+                System.out.println("No targets are suitable for healing");
+            }
+            return;
+        }
+        
+        // If we're not an archon, we only want to heal those around us
+        // who are in worse shape than we are
+        if (rc.getRobotType() != RobotType.ARCHON) {
+            if (getProportionHealth(rc) <= getProportionHealth(transferTarget)) {
+                if (DEBUG) {
+                    System.out.println("Not going to heal this target because " +
+                                        "I am more damaged than he is.");
+                }
+                return;
+            }
+        }
+        
+        // OK, we're going to heal this sucker.  Let's do it!
+        
+        MapLocation curLoc = rc.getLocation();
+        MapLocation healingTargetLoc = transferTarget.location;
+    
+        // We can transfer the energon
+        if (curLoc.equals(healingTargetLoc) || 
+            curLoc.isAdjacentTo(healingTargetLoc)) {
+            try {
+                double amountEnergonToTransfer = 
+                    calculateEnergonToTransfer(rc, transferTarget);
+                // At what height is the robot we're trying to heal?
+                RobotLevel levelOfTransferTarget = transferTarget.type.isAirborne() ? 
+                                                    RobotLevel.IN_AIR :
+                                                    RobotLevel.ON_GROUND;
+                // Finally, we know how much, where, and at what height to
+                // transfer energon.  Go ahead and try it
+                rc.transferEnergon(amountEnergonToTransfer, 
+                                    healingTargetLoc, 
+                                    levelOfTransferTarget);
+                rc.yield();
+            }
+            // The transfer failed for some reason
+            catch (GameActionException e) {
+                if (DEBUG) {
+                    System.out.println("Attempted to heal a robot " + 
+                                        transferTarget + " with out " +
+                                        "of date information; robot must " +  
+                                        "have moved");
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        // We are not adjacent; we need to move towards the robot
+        else {
+            
+            if (DEBUG) {
+                System.out.println("Trying to heal " + transferTarget + 
+                                    " but it's too far away.");
+            }
+            
+            // If we can move this turn, do so
+            
+            // Else ... 
+        }
+    }
+    
+    private double calculateEnergonToTransfer(RobotController rc, RobotInfo transferTarget) {
+        // Give them either how much energon they need to get back to full 
+        // health, or however much we can afford to give them without depleting
+        // our reserves too much.  Make sure we don't transfer a negative amount
+        return Math.max(0, Math.min(getDamage(transferTarget), 
+                        rc.getEventualEnergonLevel() - MIN_ENERGON_RESERVE));
+                                    
     }
 
     protected void messageConvert(Vector<Point> myPath) {
@@ -472,5 +618,49 @@ public class DefaultRobot implements Runnable {
 
     public int getBytecodesReserved() {
         return bytecodesReserved;
+    }
+    
+    
+    /**
+    * Using this as a comparator, the minimum of an array of RobotInfo objects
+    * will be the closest, most damaged, non-Archon unit.  In the case that only
+    * archons are in the array being sorted, it will be the closest, most damaged
+    * archon.  In the case that there are equally close units, the most
+    * damaged unit is chosen. 
+    **/
+    protected class ClosestDamagedComparator implements Comparator<RobotInfo> {
+        private DistanceComparator distanceComp;
+        private HealthComparator healthComp;
+
+        public ClosestDamagedComparator(RobotController rc) {
+            distanceComp = new DistanceComparator(rc);
+            healthComp = new HealthComparator();
+        }
+        
+        public int compare(RobotInfo r1, RobotInfo r2) {
+            // We want to make sure we do not ever return an archon for healing
+            // purposes.  As such, we want anything that's NOT an archon to
+            // be considered "less" than an archon
+            // This is sort of a hack.
+            if (r1.type == RobotType.ARCHON && r2.type != RobotType.ARCHON) {
+                return 1;
+            }
+            else if (r1.type != RobotType.ARCHON && r2.type == RobotType.ARCHON) {
+                return -1;
+            }
+            
+            // Either both archons or both non-archons.  Compare normally.
+            
+            int distanceComparison = distanceComp.compare(r1, r2);
+            
+            if (distanceComparison != 0) {
+                return distanceComparison;
+            }
+            
+            // Tie break on damage.  Note that since we compare health,
+            // take the negative of the result to get a comparison based on
+            // damage
+            return - healthComp.compare(r1, r2);
+        }
     }
 }

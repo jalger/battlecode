@@ -22,13 +22,9 @@ public class WanderRobot extends DefaultRobot {
             while (true) {
                 
                 
-                
-                // HACK
-                rc.yield();
-                // rc.yield();
-                //                 System.out.println(this + " going to explode now.");
-                //                 rc.suicide();
-                //                 
+                if (shouldHeal()) {
+                    heal();
+                }
                 
                 if (!rc.isMovementActive()) {
                 
