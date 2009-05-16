@@ -45,11 +45,14 @@ public class DefaultRobot implements Runnable {
     protected List<SubMessage> myNextMessageList;
     protected KnowledgeBase kb;
     protected Team myTeam;
-
-
+    
+    
+    
     public DefaultRobot(RobotController rcIn) {
         rc = rcIn;
         sensorRadius = rcIn.getRobotType().sensorRadius();
+
+        kb = new KnowledgeBase();
 
         
         tracing = false;

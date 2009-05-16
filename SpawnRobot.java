@@ -7,6 +7,7 @@ import teamJA_ND.util.UtilityFunctions;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Comparator;
 
 public class SpawnRobot extends DefaultRobot {
     
@@ -39,6 +40,11 @@ public class SpawnRobot extends DefaultRobot {
     private List<Robot> children;
     
     private DistanceComparator distanceComp;
+    private ClosestDamagedComparator closestDamagedComp;
+    
+    
+    
+     
     
     
     public SpawnRobot(RobotController rcIn) {
@@ -49,6 +55,8 @@ public class SpawnRobot extends DefaultRobot {
         children = new LinkedList<Robot>();
         
         distanceComp = new DistanceComparator(rc);
+        
+        closestDamagedComp = new ClosestDamagedComparator(rc);
     }
 
     public void run() {
@@ -351,10 +359,13 @@ public class SpawnRobot extends DefaultRobot {
         // To whom are we going to attempt to transfer energon?
         RobotInfo transferTarget = null;
        
+       
+       
+       
         RobotInfo closestGroundRobot = 
-            UtilityFunctions.min(kb.friendlyGroundRobots, 0, kb.friendlyGroundRobotsSize, distanceComp);
+            UtilityFunctions.min(kb.friendlyGroundRobots, 0, kb.friendlyGroundRobotsSize, closestDamagedComp);
         RobotInfo closestAirRobot = 
-            UtilityFunctions.min(kb.friendlyAirRobots, 0, kb.friendlyAirRobotsSize, distanceComp);
+            UtilityFunctions.min(kb.friendlyAirRobots, 0, kb.friendlyAirRobotsSize, closestDamagedComp);
         
         transferTarget = closestGroundRobot;
         // TODO: take into account air robot
@@ -420,12 +431,47 @@ public class SpawnRobot extends DefaultRobot {
     private double calculateEnergonToTransfer(RobotController rc, RobotInfo transferTarget) {
         // Give them either how much energon they need to get back to full 
         // health, or however much we can afford to give them without depleting
-        // our reserves too much
-        return Math.min(getDamage(transferTarget), 
-                        rc.getEventualEnergonLevel() - MIN_ENERGON_RESERVE);
+        // our reserves too much.  Make sure we don't transfer a negative amount
+        return Math.max(0, Math.min(getDamage(transferTarget), 
+                        rc.getEventualEnergonLevel() - MIN_ENERGON_RESERVE));
                                     
     }
     
+    private class ClosestDamagedComparator implements Comparator<RobotInfo> {
+        private DistanceComparator distanceComp;
+        private HealthComparator healthComp;
+
+        public ClosestDamagedComparator(RobotController rc) {
+            distanceComp = new DistanceComparator(rc);
+            healthComp = new HealthComparator();
+        }
+        
+        public int compare(RobotInfo r1, RobotInfo r2) {
+            // We want to make sure we do not ever return an archon for healing
+            // purposes.  As such, we want anything that's NOT an archon to
+            // be considered "less" than an archon
+            // This is sort of a hack.
+            if (r1.type == RobotType.ARCHON && r2.type != RobotType.ARCHON) {
+                return 1;
+            }
+            else if (r1.type != RobotType.ARCHON && r2.type == RobotType.ARCHON) {
+                return -1;
+            }
+            
+            // Either both archons or both non-archons.  Compare normally.
+            
+            int distanceComparison = distanceComp.compare(r1, r2);
+            
+            if (distanceComparison != 0) {
+                return distanceComparison;
+            }
+            
+            // Tie break on damage.  Note that since we compare health,
+            // take the negative of the result to get a comparison based on
+            // damage
+            return - healthComp.compare(r1, r2);
+        }
+    }
     
     
 }
