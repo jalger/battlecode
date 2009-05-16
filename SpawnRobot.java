@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Comparator;
 
-public class SpawnRobot extends DefaultRobot {
+public class SpawnRobot extends Archon {
     
     private int numRobotsSpawned;
     private boolean justSpawned;
@@ -110,7 +110,7 @@ public class SpawnRobot extends DefaultRobot {
                        rc.setDirection(rc.getDirection().rotateRight());
                     }
                 }
-                rc.yield();
+                endTurn();
             }
         }
         catch (Exception e) {

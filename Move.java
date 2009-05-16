@@ -108,6 +108,7 @@ public class Move extends State {
 
     public Move(KnowledgeBase kbIn, RobotController rcIn, DefaultRobot controller) {
         myKnowledge = kbIn;
+        myMap = myKnowledge.myMap;
         rc = rcIn;
         brains = controller;
         followers = new Vector<Robot>();

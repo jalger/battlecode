@@ -55,8 +55,9 @@ public class DefaultRobot implements Runnable {
     // Don't transfer energon if you have less than 40% life
     private static final double MIN_PROPORTION_ENERGON_TO_HEAL = 0.4;
     
-    private Comparator<RobotInfo> closestDamagedRobotComp;
+    protected Comparator<RobotInfo> closestDamagedRobotComp;
     
+    protected MapLocation towers[];
     
     public DefaultRobot(RobotController rcIn) {
         rc = rcIn;
@@ -76,6 +77,11 @@ public class DefaultRobot implements Runnable {
         MAX_ENERGON = rc.getMaxEnergonLevel();
         
         closestDamagedRobotComp = new ClosestDamagedComparator(rc);
+        
+        towers = rc.senseAlliedTowers();
+        // Create our map centered at our home base tower
+        myMap = new Map(towers[0].getX(), towers[0].getY());
+        
     }
 
     public void run() {
@@ -97,8 +103,6 @@ public class DefaultRobot implements Runnable {
 
 
                 bytecodesReserved = 200;
-                MapLocation towers[] = rc.senseAlliedTowers();
-                myMap = new Map(towers[0].getX(), towers[0].getY());
                 kb = new KnowledgeBase(myMap);
                 if (!(rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]) || rc.getLocation().add(Direction.EAST).equals(towers[0])))
                     //if (!rc.getLocation().add(Direction.NORTH).equals(towers[0]))
@@ -626,7 +630,7 @@ public class DefaultRobot implements Runnable {
     public Move startBlitz(MapLocation origin, Direction dir) {
         
         Point destination = getDistantPoint(origin, dir);
-        Move blitz = new Move(kb, rc, this).setGoal(destination);
+        Move blitz = new Move(myMap, rc, this).setGoal(destination);
         return blitz;
     }
     
@@ -637,17 +641,29 @@ public class DefaultRobot implements Runnable {
     **/
     public Point getDistantPoint(MapLocation origin, Direction dir) {
         
+        
+            Assert.Assert(myMap != null);
+
+        
         int pointIndex = Move.direcToPointIndex(dir);
         Point offset = Move.directions[pointIndex];
+        
+        System.out.println("Point index: " + pointIndex);
+        System.out.println("Offset: " + offset);
         
         final int SCALE = GameConstants.MAP_MAX_WIDTH;
         
         Point scaledOffset = offset.scale(SCALE);
         
         Point originPrime = myMap.toPoint(origin);
-        
-        return new Point(originPrime.x + scaledOffset.x, 
-                        originPrime.y + scaledOffset.y);
+
+        System.out.println("Scaled offset: " + scaledOffset);
+        System.out.println("Origin prime: " + originPrime);
+       
+        Point destination = new Point(originPrime.x + scaledOffset.x,
+                                    originPrime.y + scaledOffset.y);
+        System.out.println("Destination: " + destination);
+        return destination;
     }
     
     
