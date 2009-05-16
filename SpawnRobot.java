@@ -6,6 +6,9 @@ import battlecode.common.*;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Vector;
+
+import teamJA_ND.comm.*;
 
 public class SpawnRobot extends DefaultRobot {
     
@@ -62,7 +65,35 @@ public class SpawnRobot extends DefaultRobot {
         System.out.println("I'm an Archon!");
         try {
             while (true) {
-                
+                if (Clock.getRoundNum() == 500) {
+                    myMap.debug_printMap();
+                    senseRobots();
+                    rc.yield();
+                    debug_tick();
+                    Message[] messages = rc.getAllMessages();
+                    if (messages.length != 0) {
+                        if (messages.length > 0) {
+                            Message newMail = messages[messages.length - 1];
+                            queuedMessages = new Vector<SubMessage>();
+                            List<SubMessage> smL = MessageUtil.getRelevantSubMessages(newMail, kb);
+                            if (smL != null) {
+                                while (smL.size() != 0) {
+                                    queuedMessages.add(smL.remove(0));
+                                }
+                            }
+                        }
+                        RobotInfoMessage relevant = (RobotInfoMessage) queuedMessages.get(0).getBody();
+                        debug_tock();
+                        System.out.println("Got message body from incoming message");
+                        debug_tick();
+                        kb.updateKBRobotInfo(relevant);
+                        debug_tock();
+                        System.out.println("Updated KB.");
+                    }
+
+
+                    while (true) {}
+                }
                 
                 if (children.size() < MAX_NUM_SOLDIERS_TO_SPAWN &&
                     canSpawn(rc, RobotType.SOLDIER)) {
@@ -152,7 +183,7 @@ public class SpawnRobot extends DefaultRobot {
                 
                 
                 if (!rc.isMovementActive()) {
-                    System.out.println("Going to move now.");
+                    //System.out.println("Going to move now.");
                 
                     if(rc.canMove(rc.getDirection())) {
                        rc.moveForward();

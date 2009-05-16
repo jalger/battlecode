@@ -724,7 +724,7 @@ public class Map {
     public void debug_printMap() {
         String result = "";
         int squareVal;
-        for (int y = 0; y < ARRAY_HEIGHT; y++) {
+        for (int y = 40; y < ARRAY_HEIGHT; y++) {
             for (int x = 45; x < ARRAY_WIDTH - 5; x++) {
                 squareVal = explored[x][y] ? 1 : 0;
                 squareVal += airOnly[x][y] ? 2 : 0;
@@ -734,5 +734,13 @@ public class Map {
             result = "";
         }
         System.out.println("\n\n");
+    }
+
+    public MapLocation toMapLocation(Point p) {
+        return new MapLocation(p.x - dx, p.y - dy);
+    }
+
+    public Point toPoint(MapLocation m) {
+        return new Point(m.getX() + dx, m.getY() + dy);
     }
 }

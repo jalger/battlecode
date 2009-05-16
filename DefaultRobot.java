@@ -50,8 +50,6 @@ public class DefaultRobot implements Runnable {
     public DefaultRobot(RobotController rcIn) {
         rc = rcIn;
         sensorRadius = rcIn.getRobotType().sensorRadius();
-
-        
         tracing = false;
         rightWallFollow = false;
         tracingDisengageDistance = 0;
@@ -59,6 +57,9 @@ public class DefaultRobot implements Runnable {
         attackCooldown--;
         myHeight = rc.getRobot().getRobotLevel();
         myTeam = rc.getTeam();
+        MapLocation towers[] = rc.senseAlliedTowers();
+        myMap = new Map(towers[0].getX(), towers[0].getY());
+        kb = new KnowledgeBase(myMap);
     }
 
     public void run() {
@@ -79,12 +80,6 @@ public class DefaultRobot implements Runnable {
 
 
                 bytecodesReserved = 200;
-                MapLocation towers[] = rc.senseAlliedTowers();
-                myMap = new Map(towers[0].getX(), towers[0].getY());
-                kb = new KnowledgeBase(myMap);
-                if (!(rc.getLocation().add(Direction.SOUTH_EAST).equals(towers[0]) || rc.getLocation().add(Direction.EAST).equals(towers[0])))
-                    //if (!rc.getLocation().add(Direction.NORTH).equals(towers[0]))
-                        rc.suicide();
 
                 startTurn();
                 x = rc.getLocation().getX();
@@ -110,17 +105,6 @@ public class DefaultRobot implements Runnable {
                     allyLoc = allyLocs[1];
                 }
                 Robot ally = rc.senseGroundRobotAtLocation(allyLoc);
-                if (rc.getLocation().getY() != towers[0].getY()) {
-                    myState = (State) (new Move(myMap, rc, this).setGoal(new Point(x + myMap.dx + 33,y + myMap.dy + 0)).addFollower(ally));
-                } else {
-                    myState = (State) (new Move(myMap, rc, this).setFollowing(ally, new Point(0,1)));
-                }
-                myState.onEnter();
-                while (true) {
-                    startTurn();
-                    myState.update();
-                    endTurn();
-                }
 
             /*** end of main loop ***/
             } catch (Exception e) {
@@ -149,37 +133,6 @@ public class DefaultRobot implements Runnable {
             }
             //And now parse messages as necessary.
         }
-
-        System.out.println("Checking robots.");
-        debug_tick();
-
-        Robot[] nearby = rc.senseNearbyGroundRobots();
-        debug_tock();
-        for (int i = 0; i < nearby.length; i++) {
-            Robot current = nearby[i];
-            try {
-                RobotInfo currentI = rc.senseRobotInfo(current);
-                if (currentI.team == myTeam)
-                    kb.addFriendlyGroundRobot(currentI);
-                else
-                    kb.addEnemyGroundRobot(currentI);
-            } catch (Exception e) {e.printStackTrace();}
-        }
-        debug_tock();
-        nearby = rc.senseNearbyAirRobots();
-        debug_tock();
-        for (int i = 0; i < nearby.length; i++) {
-            Robot current = nearby[i];
-            try {
-                RobotInfo currentI = rc.senseRobotInfo(current);
-                if (currentI.team == myTeam)
-                    kb.addFriendlyAirRobot(currentI);
-                else
-                    kb.addEnemyAirRobot(currentI);
-            } catch (Exception e) {e.printStackTrace();}
-        }
-
-        debug_tock();
 
     }
 
@@ -405,34 +358,17 @@ public class DefaultRobot implements Runnable {
 
     public boolean senseMovable(MapLocation loc) {
         //Make sure that the location is in-bounds
-        Assert.Assert (loc.getX() + myMap.dx >= 0);
+        /*Assert.Assert (loc.getX() + myMap.dx >= 0);
         Assert.Assert (loc.getY() + myMap.dy >= 0);
         Assert.Assert (loc.getX() + myMap.dx < myMap.ARRAY_WIDTH);
         Assert.Assert (loc.getY() + myMap.dy < myMap.ARRAY_HEIGHT);
-        Assert.Assert (rc.canSenseSquare(loc));
-
+        Assert.Assert (rc.canSenseSquare(loc));*/
+        
         //Check for squares with invalid terrain
         if (!rc.senseTerrainTile(loc).isTraversableAtHeight(RobotLevel.ON_GROUND)) {
             return false;
         }
-
-        //Check for tower squares
-        Robot occupier = null;
-        try {
-            occupier = rc.senseGroundRobotAtLocation(loc);
-        } catch (Exception e) {
-        }
-        if (occupier == null) {
-            return true; //Nothing but terrain on the square
-        }
-        try {
-            if (rc.senseRobotInfo(occupier).type == RobotType.TOWER) {
-                return false; //Towers can't move or be moved. It's a permanent
-                              //barrier.
-            }
-        } catch (Exception e) {
-        }
-        return true; //Whatever's on the square, it isn't a tower.
+        return true;
     }
 
     public boolean moveTo(MapLocation goal) {
@@ -469,5 +405,117 @@ public class DefaultRobot implements Runnable {
 
     public int getBytecodesReserved() {
         return bytecodesReserved;
+    }
+
+    public void senseRobots() throws GameActionException{
+        debug_tick();
+        //First get the full list of ground robots around, and sort into teams
+        Robot[] groundRobots = rc.senseNearbyGroundRobots();
+        Robot[] airRobots = rc.senseNearbyAirRobots();
+        RobotInfo[] sortedInfo = new RobotInfo[groundRobots.length + airRobots.length];
+        int friendlyGroundIndex = 0;
+        int enemyGroundIndex = groundRobots.length-1;
+        int friendlyAirIndex = groundRobots.length;
+        int enemyAirIndex = sortedInfo.length - 1;
+        Robot current;
+        RobotInfo currentInfo;
+
+        int[] robotIDs = new int[sortedInfo.length];
+
+        for (int i = 0; i < groundRobots.length; i++) {
+            current = groundRobots[i];
+            currentInfo = rc.senseRobotInfo(current);
+            if (currentInfo.team.equals(myTeam)) {
+                robotIDs[friendlyGroundIndex] = current.getID();
+                sortedInfo[friendlyGroundIndex++] = currentInfo;
+            } else {
+                robotIDs[enemyGroundIndex] = current.getID();
+                sortedInfo[enemyGroundIndex--] = currentInfo;
+            }
+        }
+        for (int i = 0; i < airRobots.length; i++) {
+            current = airRobots[i];
+            currentInfo = rc.senseRobotInfo(current);
+            if (currentInfo.team.equals(myTeam)) {
+                robotIDs[friendlyAirIndex] = current.getID();
+                sortedInfo[friendlyAirIndex++] = currentInfo;
+            } else {
+                robotIDs[enemyAirIndex] = current.getID();
+                sortedInfo[enemyAirIndex--] = currentInfo;
+            }
+        }
+
+        int numRobots = sortedInfo.length + 1;
+        int[] currentEnergons = new int[numRobots];
+        int[] eventualEnergons = new int[numRobots];
+        int[] currentXPos = new int[numRobots];
+        int[] currentYPos = new int[numRobots];
+        int[] robotTypes = new int[numRobots];
+        int[] sortedRobotIDs = new int[numRobots];
+        
+        int friendlyGroundRobots = friendlyGroundIndex;
+        int enemyGroundRobots = groundRobots.length - friendlyGroundIndex;
+        int friendlyAirRobots = friendlyAirIndex - groundRobots.length;
+        int enemyAirRobots = sortedInfo.length - friendlyAirIndex;
+
+        int index = 0;
+
+        if (rc.getRobot().getRobotLevel().equals(RobotLevel.ON_GROUND)) {
+            friendlyGroundRobots++;
+            currentEnergons[index] = (int)(100*rc.getEnergonLevel());
+            eventualEnergons[index] = (int)(100*rc.getEventualEnergonLevel());
+            currentXPos[index] = rc.getLocation().getX();
+            currentYPos[index] = rc.getLocation().getY();
+            robotTypes[index] = rc.getRobotType().compareTo(RobotType.SOLDIER);
+            sortedRobotIDs[index++] = rc.getRobot().getID();
+        } else {
+            friendlyAirRobots++;
+        }
+        for (int i = 0; i < groundRobots.length; i++) {
+            currentInfo = sortedInfo[i];
+            currentEnergons[index] = (int)(100*currentInfo.energonLevel);
+            eventualEnergons[index] = (int)(100*currentInfo.eventualEnergon);
+            currentXPos[index] = currentInfo.location.getX();
+            currentYPos[index] = currentInfo.location.getY();
+            robotTypes[index] = currentInfo.type.compareTo(RobotType.SOLDIER);
+            sortedRobotIDs[index++] = robotIDs[i];
+        }
+        if (rc.getRobot().getRobotLevel().equals(RobotLevel.IN_AIR)) {
+            currentEnergons[index] = (int)(100*rc.getEnergonLevel());
+            eventualEnergons[index] = (int)(100*rc.getEventualEnergonLevel());
+            currentXPos[index] = rc.getLocation().getX();
+            currentYPos[index] = rc.getLocation().getY();
+            robotTypes[index] = rc.getRobotType().compareTo(RobotType.SOLDIER);
+            sortedRobotIDs[index++] = rc.getRobot().getID();
+        }
+        for (int i = groundRobots.length; i < sortedInfo.length; i++) {
+            currentEnergons[index] = (int)(100*rc.getEnergonLevel());
+            eventualEnergons[index] = (int)(100*rc.getEventualEnergonLevel());
+            currentXPos[index] = rc.getLocation().getX();
+            currentYPos[index] = rc.getLocation().getY();
+            robotTypes[index] = rc.getRobotType().compareTo(RobotType.SOLDIER);
+            sortedRobotIDs[index++] = rc.getRobot().getID();
+        }
+
+        debug_tock();
+        System.out.println("Finished constructing robot info. arrays");
+
+        debug_tick();
+        List<SubMessage> shortMessageList = new LinkedList<SubMessage>();
+        SubMessageBody b = new RobotInfoMessage(friendlyGroundRobots, enemyGroundRobots,
+                                                friendlyAirRobots, enemyAirRobots,
+                                                currentEnergons, eventualEnergons,
+                                                currentXPos, currentYPos,
+                                                robotTypes, sortedRobotIDs);
+        kb.updateKBRobotInfo((RobotInfoMessage)b);
+        SubMessageHeader h = new SubMessageHeader.Builder(rc.getLocation(), b.getLength()).build();
+        SubMessage sm = new SubMessage(h,b);
+        shortMessageList.add(sm);
+
+        Message m = MessageUtil.pack(shortMessageList, rc.getLocation(), rc.getRobot().getID(), 0);
+        try {rc.broadcast(m);} catch (Exception e) {System.out.println("There was an error.");}
+        debug_tock();
+        System.out.println("Updated personal map, and broadcast message");
+
     }
 }

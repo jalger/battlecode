@@ -17,10 +17,16 @@ package teamJA_ND;
  * @date 4/9/09
  */
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
+import battlecode.common.MapLocation;
+import java.util.Vector;
+
+import teamJA_ND.comm.*;
 
 public class KnowledgeBase {
 
     protected Map myMap;
+    protected Vector<MapLocation> towers;
     //And some other stuff
 
     // Own troop strength
@@ -43,6 +49,7 @@ public class KnowledgeBase {
     * in powers of 2 so we can do bit packing.
     **/
     public int robotType;
+    protected KBRobotInfo otherRobotKnowledge;
 
     public KnowledgeBase() {
         friendlyGroundRobots = new RobotInfo[100];
@@ -53,6 +60,8 @@ public class KnowledgeBase {
         friendlyAirRobotsSize = 0;
         enemyGroundRobotsSize = 0;
         enemyAirRobotsSize = 0;
+        otherRobotKnowledge = new KBRobotInfo();
+        towers = new Vector<MapLocation>();
     }
 
     public KnowledgeBase(Map mapIn) {
@@ -65,6 +74,8 @@ public class KnowledgeBase {
         friendlyAirRobotsSize = 0;
         enemyGroundRobotsSize = 0;
         enemyAirRobotsSize = 0;
+        otherRobotKnowledge = new KBRobotInfo();
+        towers = new Vector<MapLocation>();
     }
 
     public void resetRobotKnowledge() {
@@ -92,6 +103,53 @@ public class KnowledgeBase {
     public void addEnemyAirRobot(RobotInfo newRobot) {
         enemyAirRobots[enemyAirRobotsSize] = newRobot;
         enemyAirRobotsSize++;
+    }
+
+    public void updateKBRobotInfo(RobotInfoMessage newInfo) {
+        otherRobotKnowledge.numFGround = newInfo.friendlyGroundRobots;
+        otherRobotKnowledge.numEGround = newInfo.enemyGroundRobots;
+        otherRobotKnowledge.numFAir = newInfo.friendlyAirRobots;
+        otherRobotKnowledge.numEAir = newInfo.enemyAirRobots;
+        otherRobotKnowledge.currEnergons = newInfo.currentEnergons;
+        otherRobotKnowledge.finalEnergons = newInfo.eventualEnergons;
+        otherRobotKnowledge.xCoords = newInfo.currentXPos;
+        otherRobotKnowledge.yCoords = newInfo.currentYPos;
+        otherRobotKnowledge.robotIDs = newInfo.robotIDs;
+
+        otherRobotKnowledge.robotTypes = new RobotType[newInfo.numRobots];
+        for (int i = 0; i < newInfo.numRobots; i++) {
+            otherRobotKnowledge.robotTypes[i] = RobotType.values()[newInfo.robotTypes[i]];
+            if (otherRobotKnowledge.robotTypes[i].equals(RobotType.TOWER)) {
+                MapLocation temp = new MapLocation(otherRobotKnowledge.xCoords[i], otherRobotKnowledge.yCoords[i]);
+                myMap.setTerrain(false, temp);
+                addTower(temp);
+            }
+        }
+    }
+
+    protected void addTower(MapLocation towerLoc) {
+        if (!towers.contains(towerLoc))
+            towers.add(towerLoc);
+    }
+
+    private class KBRobotInfo {
+        protected int numFGround, numEGround, numFAir, numEAir;
+        protected int[] currEnergons, finalEnergons, xCoords, yCoords, robotIDs;
+        protected RobotType[] robotTypes;
+
+        public KBRobotInfo() {
+            numFGround = 0;
+            numEGround = 0;
+            numEAir = 0;
+            numFAir = 0;
+            currEnergons = null;
+            finalEnergons = null;
+            xCoords = null;
+            yCoords = null;
+            robotIDs = null;
+            robotTypes = null;
+        }
+
     }
 
 
