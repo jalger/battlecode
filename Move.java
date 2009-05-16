@@ -82,7 +82,6 @@ public class Move extends State {
     protected Vector<Point> myPath;
     protected int currentRound;
     protected int x0,  y0;
-    protected Point[] directions;
     protected int currDirIndex;
     protected Point goal;
     protected int airMoveRate,  groundMoveRate;
@@ -91,12 +90,11 @@ public class Move extends State {
     protected boolean currentStageInProgress;
     protected boolean finishedMoving;
     protected int counter;
-
-    public Move(KnowledgeBase kbIn, RobotController rcIn, DefaultRobot controller) {
-        myKnowledge = kbIn;
-        rc = rcIn;
-        brains = controller;
-        directions = new Point[NUM_DIRECS];
+    
+    protected static Point[] directions = new Point[NUM_DIRECS];
+    
+    // Initialize all the directions
+    static {
         directions[N_N] = new Point(0, -1);
         directions[N_NW] = new Point(-1, -1);
         directions[N_W] = new Point(-1, 0);
@@ -105,6 +103,13 @@ public class Move extends State {
         directions[N_SE] = new Point(1, 1);
         directions[N_E] = new Point(1, 0);
         directions[N_NE] = new Point(1, -1);
+    }
+
+
+    public Move(KnowledgeBase kbIn, RobotController rcIn, DefaultRobot controller) {
+        myKnowledge = kbIn;
+        rc = rcIn;
+        brains = controller;
         followers = new Vector<Robot>();
     }
 
@@ -112,15 +117,6 @@ public class Move extends State {
         myMap = mapIn;
         rc = rcIn;
         brains = controller;
-        directions = new Point[NUM_DIRECS];
-        directions[N_N] = new Point(0, -1);
-        directions[N_NW] = new Point(-1, -1);
-        directions[N_W] = new Point(-1, 0);
-        directions[N_SW] = new Point(-1, 1);
-        directions[N_S] = new Point(0, 1);
-        directions[N_SE] = new Point(1, 1);
-        directions[N_E] = new Point(1, 0);
-        directions[N_NE] = new Point(1, -1);
         followers = new Vector<Robot>();
     }
 
@@ -529,7 +525,7 @@ public class Move extends State {
         return N_W;
     }
 
-    public int direcToPointIndex(Direction direc) {
+    public static int direcToPointIndex(Direction direc) {
         switch (direc) {
             case NORTH:
                 return N_N;

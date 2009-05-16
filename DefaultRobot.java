@@ -511,8 +511,6 @@ public class DefaultRobot implements Runnable {
         }
     }
 
-
-
     protected  void updateMapSquare(MapLocation loc) {
         if ((loc.getX() + myMap.dx >= 0) && (loc.getX() + myMap.dx < myMap.ARRAY_WIDTH) &&
             (loc.getY() + myMap.dy >= 0) && (loc.getY() + myMap.dy < myMap.ARRAY_HEIGHT)) {
@@ -618,6 +616,38 @@ public class DefaultRobot implements Runnable {
 
     public int getBytecodesReserved() {
         return bytecodesReserved;
+    }
+    
+    
+    /**
+    * @return a Move object that will move the robot towards the
+    * nearest enemy archon, but some angle to it.
+    **/
+    public Move startBlitz(MapLocation origin, Direction dir) {
+        
+        Point destination = getDistantPoint(origin, dir);
+        Move blitz = new Move(kb, rc, this).setGoal(destination);
+        return blitz;
+    }
+    
+    /**
+    * @return a distant point that lies in the given direction from the
+    * origin.  This lets us use tangent bug to go in this general direction
+    * while avoiding obstacles along the way
+    **/
+    public Point getDistantPoint(MapLocation origin, Direction dir) {
+        
+        int pointIndex = Move.direcToPointIndex(dir);
+        Point offset = Move.directions[pointIndex];
+        
+        final int SCALE = GameConstants.MAP_MAX_WIDTH;
+        
+        Point scaledOffset = offset.scale(SCALE);
+        
+        Point originPrime = myMap.toPoint(origin);
+        
+        return new Point(originPrime.x + scaledOffset.x, 
+                        originPrime.y + scaledOffset.y);
     }
     
     
